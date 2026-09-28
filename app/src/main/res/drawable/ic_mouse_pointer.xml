@@ -1,12 +1,34 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="24dp"
-    android:height="24dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
+    android:width="28dp"
+    android:height="28dp"
+    android:viewportWidth="28"
+    android:viewportHeight="28">
+
+    <!-- Soft Drop Shadow -->
     <path
-        android:fillColor="#FF000000"
-        android:pathData="M4,2L4,21L9.5,15.5L13,22L17.5,20L14,13.5L22,13.5Z" />
+        android:fillColor="#3D000000"
+        android:strokeColor="#3D000000"
+        android:strokeWidth="1.5"
+        android:strokeLineJoin="round"
+        android:pathData="M1.5,1.5 L1.5,20 L5.8,15.8 L9.8,24.8 L12.8,23.5 L8.8,14.5 L15.5,14.5 Z" />
+
+    <!-- Dark Contrast Outline -->
     <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M6,6L6,16.2L9,13.2L12.5,19.5L14.5,18.5L11.3,12L18,12Z" />
+        android:fillColor="#000000"
+        android:strokeColor="#000000"
+        android:strokeWidth="2.0"
+        android:strokeLineJoin="round"
+        android:strokeLineCap="round"
+        android:pathData="M0,0 L0,18.5 L4.3,14.3 L8.3,23.3 L11.3,22 L7.3,13 L14,13 Z" />
+
+    <!-- Crisp White Core Pointer -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M1.2,1.8 L1.2,16.5 L4.5,13.2 L8.5,22.2 L10.1,21.5 L6.2,12.5 L12.5,12.5 Z" />
+
+    <!-- Subtle Highlight on Left Leading Edge -->
+    <path
+        android:fillColor="#E6F0FA"
+        android:pathData="M1.2,1.8 L1.2,16.5 L3.2,14.5 L3.2,3.8 Z" />
+
 </vector>

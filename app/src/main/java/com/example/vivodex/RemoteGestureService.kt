@@ -102,7 +102,7 @@ class RemoteGestureService : AccessibilityService() {
         if (cursorDisplayId != displayId) removeCursor()
 
         val displayContext = createDisplayContext(display)
-        val size = (32 * displayContext.resources.displayMetrics.density).toInt()
+        val size = (28 * displayContext.resources.displayMetrics.density).toInt()
         val params = WindowManager.LayoutParams(
             size,
             size,
@@ -111,10 +111,8 @@ class RemoteGestureService : AccessibilityService() {
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or Gravity.START
-            // Hotspot is top-left of the cursor icon (arrow tip at M4,2)
-            val hotspotOffset = (4 * displayContext.resources.displayMetrics.density).toInt()
-            this.x = (x - hotspotOffset).toInt()
-            this.y = (y - hotspotOffset).toInt()
+            this.x = x.toInt()
+            this.y = y.toInt()
         }
 
         if (cursorView == null) {

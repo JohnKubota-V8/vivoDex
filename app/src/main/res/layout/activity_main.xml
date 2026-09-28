@@ -394,7 +394,7 @@
                 </FrameLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Scroll Gestures Bar (Up, Down, Left, Right) -->
+            <!-- Scroll Gestures Bar (Icon-Only: Up, Down, Left, Right) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -405,48 +405,68 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/scroll_up"
                     android:layout_width="0dp"
-                    android:layout_height="44dp"
+                    android:layout_height="42dp"
                     android:layout_weight="1"
-                    android:text="Up"
+                    android:padding="0dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
                     app:icon="@drawable/ic_arrow_up"
-                    app:iconSize="18dp"
+                    app:iconSize="20dp"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"
                     app:cornerRadius="12dp"
+                    android:contentDescription="Scroll Up"
                     style="@style/Widget.Material3.Button.TonalButton" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/scroll_down"
                     android:layout_width="0dp"
-                    android:layout_height="44dp"
+                    android:layout_height="42dp"
                     android:layout_weight="1"
                     android:layout_marginStart="6dp"
-                    android:text="Down"
+                    android:padding="0dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
                     app:icon="@drawable/ic_arrow_down"
-                    app:iconSize="18dp"
+                    app:iconSize="20dp"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"
                     app:cornerRadius="12dp"
+                    android:contentDescription="Scroll Down"
                     style="@style/Widget.Material3.Button.TonalButton" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/scroll_left"
                     android:layout_width="0dp"
-                    android:layout_height="44dp"
+                    android:layout_height="42dp"
                     android:layout_weight="1"
                     android:layout_marginStart="6dp"
-                    android:text="Left"
+                    android:padding="0dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
                     app:icon="@drawable/ic_arrow_back"
-                    app:iconSize="18dp"
+                    app:iconSize="20dp"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"
                     app:cornerRadius="12dp"
+                    android:contentDescription="Scroll Left"
                     style="@style/Widget.Material3.Button.TonalButton" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/scroll_right"
                     android:layout_width="0dp"
-                    android:layout_height="44dp"
+                    android:layout_height="42dp"
                     android:layout_weight="1"
                     android:layout_marginStart="6dp"
-                    android:text="Right"
+                    android:padding="0dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
                     app:icon="@drawable/ic_arrow_forward"
-                    app:iconSize="18dp"
+                    app:iconSize="20dp"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"
                     app:cornerRadius="12dp"
+                    android:contentDescription="Scroll Right"
                     style="@style/Widget.Material3.Button.TonalButton" />
             </LinearLayout>
 
