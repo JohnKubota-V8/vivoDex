@@ -70,6 +70,7 @@
 | **1-Finger Tap** | Left-click with tactile haptic feedback |
 | **2-Finger Tap** | Right-click / Context menu with haptic feedback |
 | **2-Finger Drag (Up/Down)** | Real-time continuous smooth scrolling with haptic ticks |
+| **Scroll Buttons Bar** | Dedicated `Up` • `Down` • `Left` • `Right` buttons for quick discrete scrolling |
 | **Double-Tap & Hold** | Drag & drop (window moving or text selection) |
 | **Dedicated Mouse Bar** | Bottom buttons for physical-style **Left Click** and **Right Click** |
 | **Pointer Speed Button** | Cycle sensitivity preset: `1.0x` • `1.5x` • `2.0x` • `2.5x` • `3.0x` |

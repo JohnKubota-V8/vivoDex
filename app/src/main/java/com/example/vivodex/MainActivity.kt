@@ -183,6 +183,24 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         }
 
 
+        // Scroll Gestures Buttons
+        findViewById<View>(R.id.scroll_up).setOnClickListener {
+            HapticHelper.tick(this)
+            scrollAtCursor(deltaY = 300f)
+        }
+        findViewById<View>(R.id.scroll_down).setOnClickListener {
+            HapticHelper.tick(this)
+            scrollAtCursor(deltaY = -300f)
+        }
+        findViewById<View>(R.id.scroll_left).setOnClickListener {
+            HapticHelper.tick(this)
+            scrollAtCursor(deltaX = -300f)
+        }
+        findViewById<View>(R.id.scroll_right).setOnClickListener {
+            HapticHelper.tick(this)
+            scrollAtCursor(deltaX = 300f)
+        }
+
         // Physical Mouse Buttons
         leftClickButton.setOnClickListener {
             HapticHelper.heavyClick(this)
@@ -334,6 +352,12 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
     private fun longPressAtCursor() {
         val displayId = selectedDisplayId ?: externalDisplay()?.displayId ?: return
         val sent = RemoteGestureService.instance?.longPress(displayId, cursorX, cursorY) ?: false
+        if (!sent) showAccessibilityRequiredToast()
+    }
+
+    private fun scrollAtCursor(deltaX: Float = 0f, deltaY: Float = 0f) {
+        val displayId = selectedDisplayId ?: externalDisplay()?.displayId ?: return
+        val sent = RemoteGestureService.instance?.scroll(displayId, cursorX, cursorY, deltaX, deltaY) ?: false
         if (!sent) showAccessibilityRequiredToast()
     }
 
