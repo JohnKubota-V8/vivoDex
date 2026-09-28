@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">vivoDex</string>
+    <string name="accessibility_description">Sends test taps from VivoDex to the selected display.</string>
+</resources>

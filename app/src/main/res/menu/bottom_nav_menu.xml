@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_display"
+        android:icon="@drawable/ic_display"
+        android:title="Display &amp; Apps" />
+    <item
+        android:id="@+id/nav_touchpad"
+        android:icon="@drawable/ic_touchpad"
+        android:title="Touchpad" />
+</menu>
