@@ -11,7 +11,6 @@
 * **Secondary Display Launching:** Launch apps (YouTube, Chrome, etc.) directly onto the external monitor in fullscreen (16:9).
 * **Immersive Virtual Trackpad:** Your phone screen becomes a full-size, tactile trackpad to control a mouse pointer on the external monitor.
 * **Real-time Tactile Gestures & Haptics:** Tap-to-click, two-finger smooth scroll, double-tap drag, and dedicated mouse buttons.
-* **Desktop Navigation Bar:** On-screen Back, Home, and Recents shortcuts to navigate apps on the external display.
 * **AMOLED Screen Dimmer:** Turn the phone display pure black while working on the monitor to save battery and stay cool.
 
 ---
@@ -34,7 +33,6 @@
   │  │   • Double-Tap→ Drag & Drop       │  │
   │  │                                   │  │
   │  └───────────────────────────────────┘  │
-  │   [ ◀ Back ]  [ ⏺ Home ]  [ ▢ Recents ] │
   │   [   Left Click   ]  [ Right Click ]   │
   └────────────────────┬────────────────────┘
                        │ USB-C DisplayPort
@@ -61,7 +59,6 @@
    ```
 3. **Cursor Overlay:** `RemoteGestureService` (`AccessibilityService`) attaches an overlay cursor (`ic_mouse_pointer`) to the external display's Window Manager using `TYPE_ACCESSIBILITY_OVERLAY` and `createDisplayContext(externalDisplay)`.
 4. **Input Injection:** Touches from the phone's trackpad are converted into Android `GestureDescription` strokes dispatched directly to the external display ID via `AccessibilityService.dispatchGesture(gesture, null, null)`.
-5. **Global Navigation:** The on-screen Back, Home, and Recents buttons trigger `performGlobalAction(GLOBAL_ACTION_*)` to control the system smoothly.
 
 ---
 
