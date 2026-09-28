@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Base pure OLED black background -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/canvas_dark" />
+        </shape>
+    </item>
+
+    <!-- Subtle Monochrome Dark Vignette Depth -->
+    <item
+        android:top="-100dp"
+        android:right="-80dp"
+        android:bottom="180dp"
+        android:left="40dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="340dp"
+                android:startColor="#0AFFFFFF"
+                android:endColor="#00000000" />
+        </shape>
+    </item>
+</layer-list>

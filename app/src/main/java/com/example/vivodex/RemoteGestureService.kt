@@ -2,15 +2,21 @@ package com.example.vivodex
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
+import android.animation.Animator
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.graphics.Path
 import android.graphics.PixelFormat
 import android.hardware.display.DisplayManager
+import android.os.Handler
+import android.os.Looper
 import android.view.Display
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
@@ -22,6 +28,12 @@ class RemoteGestureService : AccessibilityService() {
     private var cursorVisible = true
     private var blackoutView: View? = null
     private var blackoutWindowManager: WindowManager? = null
+    private val blackoutAnimators = mutableListOf<Animator>()
+
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private val autoHideCursorRunnable = Runnable {
+        hideCursorForInactivity()
+    }
 
     override fun onServiceConnected() {
         instance = this
@@ -32,6 +44,7 @@ class RemoteGestureService : AccessibilityService() {
     override fun onInterrupt() = Unit
 
     override fun onDestroy() {
+        mainHandler.removeCallbacks(autoHideCursorRunnable)
         removeCursor()
         removeBlackout()
         if (instance === this) instance = null
@@ -39,6 +52,7 @@ class RemoteGestureService : AccessibilityService() {
     }
 
     fun tap(displayId: Int, x: Float, y: Float): Boolean {
+        resetCursorInactivityTimer()
         val display = getSystemService(DisplayManager::class.java).getDisplay(displayId) ?: return false
         val clampedX = x.coerceIn(0f, display.mode.physicalWidth.toFloat())
         val clampedY = y.coerceIn(0f, display.mode.physicalHeight.toFloat())
@@ -51,6 +65,7 @@ class RemoteGestureService : AccessibilityService() {
     }
 
     fun longPress(displayId: Int, x: Float, y: Float): Boolean {
+        resetCursorInactivityTimer()
         val display = getSystemService(DisplayManager::class.java).getDisplay(displayId) ?: return false
         val clampedX = x.coerceIn(0f, display.mode.physicalWidth.toFloat())
         val clampedY = y.coerceIn(0f, display.mode.physicalHeight.toFloat())
@@ -63,6 +78,7 @@ class RemoteGestureService : AccessibilityService() {
     }
 
     fun drag(displayId: Int, startX: Float, startY: Float, endX: Float, endY: Float, durationMs: Long = 250): Boolean {
+        resetCursorInactivityTimer()
         val display = getSystemService(DisplayManager::class.java).getDisplay(displayId) ?: return false
         val clampedStartX = startX.coerceIn(0f, display.mode.physicalWidth.toFloat())
         val clampedStartY = startY.coerceIn(0f, display.mode.physicalHeight.toFloat())
@@ -80,6 +96,7 @@ class RemoteGestureService : AccessibilityService() {
     }
 
     fun scroll(displayId: Int, x: Float, y: Float, deltaX: Float, deltaY: Float): Boolean {
+        resetCursorInactivityTimer()
         val display = getSystemService(DisplayManager::class.java).getDisplay(displayId) ?: return false
         val endX = (x + deltaX).coerceIn(0f, display.mode.physicalWidth.toFloat())
         val endY = (y + deltaY).coerceIn(0f, display.mode.physicalHeight.toFloat())
@@ -98,6 +115,7 @@ class RemoteGestureService : AccessibilityService() {
 
     fun moveCursor(displayId: Int, x: Float, y: Float) {
         if (!cursorVisible) return
+        resetCursorInactivityTimer()
         val display = getSystemService(DisplayManager::class.java).getDisplay(displayId) ?: return
         if (cursorDisplayId != displayId) removeCursor()
 
@@ -128,6 +146,7 @@ class RemoteGestureService : AccessibilityService() {
             } catch (_: WindowManager.BadTokenException) { }
         } else {
             try {
+                cursorView?.visibility = View.VISIBLE
                 cursorWindowManager?.updateViewLayout(cursorView, params)
             } catch (_: WindowManager.BadTokenException) {
                 removeCursor()
@@ -135,9 +154,29 @@ class RemoteGestureService : AccessibilityService() {
         }
     }
 
+    private fun resetCursorInactivityTimer() {
+        mainHandler.removeCallbacks(autoHideCursorRunnable)
+        if (cursorView?.visibility != View.VISIBLE && cursorVisible) {
+            cursorView?.visibility = View.VISIBLE
+        }
+        if (cursorVisible) {
+            mainHandler.postDelayed(autoHideCursorRunnable, CURSOR_AUTO_HIDE_DELAY_MS)
+        }
+    }
+
+    private fun hideCursorForInactivity() {
+        if (!cursorVisible) return
+        cursorView?.visibility = View.GONE
+    }
+
     fun toggleCursor(): Boolean {
         cursorVisible = !cursorVisible
-        if (!cursorVisible) removeCursor()
+        if (!cursorVisible) {
+            mainHandler.removeCallbacks(autoHideCursorRunnable)
+            removeCursor()
+        } else {
+            resetCursorInactivityTimer()
+        }
         return cursorVisible
     }
 
@@ -169,8 +208,8 @@ class RemoteGestureService : AccessibilityService() {
         }
 
         val hintText = TextView(displayContext).apply {
-            text = "🌙 Phone Screen Dimmed\nTap anywhere to wake"
-            setTextColor(android.graphics.Color.argb(120, 255, 255, 255))
+            text = "🌙 Phone Screen Dimmed\n(Anti-Burn Active)\n\nTap anywhere to wake"
+            setTextColor(android.graphics.Color.WHITE)
             textSize = 14f
             gravity = Gravity.CENTER
             layoutParams = FrameLayout.LayoutParams(
@@ -180,6 +219,39 @@ class RemoteGestureService : AccessibilityService() {
             )
         }
         frame.addView(hintText)
+
+        // OLED Anti-Burn-in Drift Animators (Lissajous curves with prime period intervals)
+        val density = displayContext.resources.displayMetrics.density
+        val driftX = 70f * density
+        val driftY = 120f * density
+
+        val animX = ObjectAnimator.ofFloat(hintText, View.TRANSLATION_X, -driftX, driftX).apply {
+            duration = 11000L
+            repeatMode = ValueAnimator.REVERSE
+            repeatCount = ValueAnimator.INFINITE
+            interpolator = AccelerateDecelerateInterpolator()
+        }
+        val animY = ObjectAnimator.ofFloat(hintText, View.TRANSLATION_Y, -driftY, driftY).apply {
+            duration = 17000L
+            repeatMode = ValueAnimator.REVERSE
+            repeatCount = ValueAnimator.INFINITE
+            interpolator = AccelerateDecelerateInterpolator()
+        }
+        val animAlpha = ObjectAnimator.ofFloat(hintText, View.ALPHA, 0.35f, 0.70f).apply {
+            duration = 7000L
+            repeatMode = ValueAnimator.REVERSE
+            repeatCount = ValueAnimator.INFINITE
+            interpolator = AccelerateDecelerateInterpolator()
+        }
+
+        blackoutAnimators.clear()
+        blackoutAnimators.add(animX)
+        blackoutAnimators.add(animY)
+        blackoutAnimators.add(animAlpha)
+
+        animX.start()
+        animY.start()
+        animAlpha.start()
 
         val windowManager = displayContext.getSystemService(WindowManager::class.java)
         val params = WindowManager.LayoutParams(
@@ -205,6 +277,7 @@ class RemoteGestureService : AccessibilityService() {
     }
 
     private fun removeCursor() {
+        mainHandler.removeCallbacks(autoHideCursorRunnable)
         cursorView?.let { cursorWindowManager?.removeView(it) }
         cursorView = null
         cursorWindowManager = null
@@ -212,6 +285,8 @@ class RemoteGestureService : AccessibilityService() {
     }
 
     private fun removeBlackout() {
+        blackoutAnimators.forEach { it.cancel() }
+        blackoutAnimators.clear()
         blackoutView?.let { view ->
             try {
                 blackoutWindowManager?.removeView(view)
@@ -222,6 +297,8 @@ class RemoteGestureService : AccessibilityService() {
     }
 
     companion object {
+        const val CURSOR_AUTO_HIDE_DELAY_MS = 10_000L
+
         var instance: RemoteGestureService? = null
             private set
     }

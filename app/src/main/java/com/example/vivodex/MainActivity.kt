@@ -245,12 +245,12 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
 
         if (display == null) {
             statusView.text = "No external display connected\nConnect USB-C to Monitor or TV"
-            displayIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#9E9E9E"))
+            displayIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#71717A"))
             trackpadView.isEnabled = false
             trackpadStatusView.text = "Display Disconnected"
         } else {
             statusView.text = "Connected: ${display.name}\n${display.mode.physicalWidth} x ${display.mode.physicalHeight} @ ${formatRefreshRate(display.refreshRate)} Hz"
-            displayIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+            displayIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#FFFFFF"))
             trackpadView.isEnabled = true
             trackpadStatusView.text = "Connected: ${display.name}"
         }
@@ -266,12 +266,12 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         if (isEnabled) {
             accessibilityStatusView.text = "Accessibility Active (Gestures & Cursor Ready)"
             accessibilityIcon.setImageResource(R.drawable.ic_check_circle)
-            accessibilityIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+            accessibilityIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#FFFFFF"))
             openAccessibilityButton.visibility = View.GONE
         } else {
             accessibilityStatusView.text = "Accessibility Disabled (Required for Virtual Mouse)"
             accessibilityIcon.setImageResource(R.drawable.ic_warning)
-            accessibilityIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#F44336"))
+            accessibilityIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#71717A"))
             openAccessibilityButton.visibility = View.VISIBLE
         }
     }
@@ -461,10 +461,10 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
             val card = com.google.android.material.card.MaterialCardView(this).apply {
                 layoutParams = LinearLayout.LayoutParams((60 * density).toInt(), (60 * density).toInt())
                 radius = 18 * density
-                cardElevation = if (isSelected) (4 * density) else (1 * density)
-                strokeWidth = if (isSelected) (2.5f * density).toInt() else (1 * density).toInt()
-                strokeColor = if (isSelected) primaryColor else Color.parseColor("#28888888")
-                setCardBackgroundColor(surfaceVariantColor)
+                cardElevation = if (isSelected) (4 * density) else 0f
+                strokeWidth = if (isSelected) (2f * density).toInt() else (1 * density).toInt()
+                strokeColor = if (isSelected) Color.parseColor("#FFFFFF") else Color.parseColor("#26FFFFFF")
+                setCardBackgroundColor(if (isSelected) Color.parseColor("#28FFFFFF") else Color.parseColor("#12FFFFFF"))
                 isClickable = true
                 isFocusable = true
 
@@ -498,10 +498,10 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
                 ellipsize = android.text.TextUtils.TruncateAt.END
                 gravity = android.view.Gravity.CENTER_HORIZONTAL
                 if (isSelected) {
-                    setTextColor(primaryColor)
+                    setTextColor(Color.parseColor("#FFFFFF"))
                     setTypeface(typeface, android.graphics.Typeface.BOLD)
                 } else {
-                    setTextColor(Color.parseColor("#CCCCCC"))
+                    setTextColor(Color.parseColor("#A1A1AA"))
                 }
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
