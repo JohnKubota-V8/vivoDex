@@ -56,9 +56,6 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
     private lateinit var blackoutButton: MaterialButton
     private lateinit var leftClickButton: MaterialButton
     private lateinit var rightClickButton: MaterialButton
-    private lateinit var navBackButton: MaterialButton
-    private lateinit var navHomeButton: MaterialButton
-    private lateinit var navRecentsButton: MaterialButton
 
     private lateinit var bottomNavigation: BottomNavigationView
 
@@ -137,9 +134,6 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         blackoutButton = findViewById(R.id.blackout_phone_screen)
         leftClickButton = findViewById(R.id.btn_mouse_left)
         rightClickButton = findViewById(R.id.btn_mouse_right)
-        navBackButton = findViewById(R.id.btn_nav_back)
-        navHomeButton = findViewById(R.id.btn_nav_home)
-        navRecentsButton = findViewById(R.id.btn_nav_recents)
 
         bottomNavigation = findViewById(R.id.bottom_navigation)
         trackpadView.listener = this
@@ -188,24 +182,6 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
             }
         }
 
-        // Desktop Navigation Bar
-        navBackButton.setOnClickListener {
-            HapticHelper.click(this)
-            val success = RemoteGestureService.instance?.goBack() ?: false
-            if (!success) showAccessibilityRequiredToast()
-        }
-
-        navHomeButton.setOnClickListener {
-            HapticHelper.click(this)
-            val success = RemoteGestureService.instance?.goHome() ?: false
-            if (!success) showAccessibilityRequiredToast()
-        }
-
-        navRecentsButton.setOnClickListener {
-            HapticHelper.click(this)
-            val success = RemoteGestureService.instance?.openRecents() ?: false
-            if (!success) showAccessibilityRequiredToast()
-        }
 
         // Physical Mouse Buttons
         leftClickButton.setOnClickListener {
@@ -424,45 +400,92 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         favoriteAppsView.removeAllViews()
 
         val density = resources.displayMetrics.density
+
+        if (favorites.isEmpty()) {
+            val emptyNotice = TextView(this).apply {
+                text = "No favorite apps added yet. Tap 'Add App' below to select shortcuts."
+                textSize = 13f
+                setTextColor(Color.parseColor("#888888"))
+                setPadding((8 * density).toInt(), (14 * density).toInt(), (8 * density).toInt(), (14 * density).toInt())
+            }
+            favoriteAppsView.addView(emptyNotice)
+            removeFavoriteButton.visibility = View.GONE
+            launchAppButton.isEnabled = false
+            launchAppButton.text = "Launch App"
+            return
+        }
+
+        val typedValue = android.util.TypedValue()
+        theme.resolveAttribute(com.google.android.material.R.attr.colorPrimary, typedValue, true)
+        val primaryColor = typedValue.data
+
+        theme.resolveAttribute(com.google.android.material.R.attr.colorSurfaceVariant, typedValue, true)
+        val surfaceVariantColor = typedValue.data
+
         favorites.forEach { app ->
+            val isSelected = (selectedApp?.activityInfo?.packageName == app.activityInfo.packageName)
+
             val appContainer = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 gravity = android.view.Gravity.CENTER_HORIZONTAL
                 layoutParams = LinearLayout.LayoutParams(
-                    (76 * density).toInt(),
+                    (74 * density).toInt(),
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                 ).apply { marginEnd = (10 * density).toInt() }
             }
 
-            val iconBtn = MaterialButton(this).apply {
+            val card = com.google.android.material.card.MaterialCardView(this).apply {
                 layoutParams = LinearLayout.LayoutParams((60 * density).toInt(), (60 * density).toInt())
-                setPadding(0, 0, 0, 0)
-                icon = app.loadIcon(packageManager)
-                iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
-                iconPadding = 0
-                iconSize = (38 * density).toInt()
-                iconTint = null
-                cornerRadius = (16 * density).toInt()
-                contentDescription = app.loadLabel(packageManager)
+                radius = 18 * density
+                cardElevation = if (isSelected) (4 * density) else (1 * density)
+                strokeWidth = if (isSelected) (2.5f * density).toInt() else (1 * density).toInt()
+                strokeColor = if (isSelected) primaryColor else Color.parseColor("#28888888")
+                setCardBackgroundColor(surfaceVariantColor)
+                isClickable = true
+                isFocusable = true
+
                 setOnClickListener {
+                    val wasSelected = (selectedApp?.activityInfo?.packageName == app.activityInfo.packageName)
                     selectFavorite(app)
-                    launchSelectedApp()
+                    HapticHelper.click(this@MainActivity)
+                    if (wasSelected) {
+                        launchSelectedApp()
+                    }
                 }
             }
 
+            val iconView = ImageView(this).apply {
+                layoutParams = android.widget.FrameLayout.LayoutParams(
+                    (46 * density).toInt(),
+                    (46 * density).toInt(),
+                    android.view.Gravity.CENTER,
+                )
+                setImageDrawable(app.loadIcon(packageManager))
+                scaleType = ImageView.ScaleType.FIT_CENTER
+                adjustViewBounds = true
+            }
+
+            card.addView(iconView)
+
             val appLabel = TextView(this).apply {
                 text = app.loadLabel(packageManager)
-                textSize = 11f
+                textSize = 11.5f
                 maxLines = 1
                 ellipsize = android.text.TextUtils.TruncateAt.END
                 gravity = android.view.Gravity.CENTER_HORIZONTAL
+                if (isSelected) {
+                    setTextColor(primaryColor)
+                    setTypeface(typeface, android.graphics.Typeface.BOLD)
+                } else {
+                    setTextColor(Color.parseColor("#CCCCCC"))
+                }
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT,
-                ).apply { topMargin = (4 * density).toInt() }
+                ).apply { topMargin = (6 * density).toInt() }
             }
 
-            appContainer.addView(iconBtn)
+            appContainer.addView(card)
             appContainer.addView(appLabel)
             favoriteAppsView.addView(appContainer)
         }
@@ -473,10 +496,14 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
     }
 
     private fun selectFavorite(app: ResolveInfo) {
+        val prevSelected = selectedApp
         selectedApp = app
         launchAppButton.isEnabled = true
         launchAppButton.text = "Launch ${app.loadLabel(packageManager)} on Display"
         removeFavoriteButton.visibility = View.VISIBLE
+        if (prevSelected?.activityInfo?.packageName != app.activityInfo.packageName) {
+            renderFavorites()
+        }
     }
 
     private fun removeSelectedFavorite() {
