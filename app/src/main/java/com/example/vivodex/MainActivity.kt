@@ -3,14 +3,17 @@ package com.example.vivodex
 import android.app.ActivityOptions
 import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.ResolveInfo
 import android.content.res.ColorStateList
 import android.graphics.Color
+import androidx.core.content.ContextCompat
 import android.hardware.display.DisplayManager
 import android.os.Bundle
 import android.provider.Settings
+import android.text.InputType
 import android.util.Log
 import android.view.Display
 import android.view.View
@@ -23,6 +26,7 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.button.MaterialButton
@@ -45,6 +49,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
     private lateinit var favoriteAppsView: LinearLayout
     private lateinit var removeFavoriteButton: MaterialButton
     private lateinit var launchAppButton: MaterialButton
+    private lateinit var openKeyboardButton: MaterialButton
     private lateinit var displayPage: View
 
     // Touchpad Page Views
@@ -55,7 +60,6 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
     private lateinit var toggleCursorButton: MaterialButton
     private lateinit var blackoutButton: MaterialButton
     private lateinit var leftClickButton: MaterialButton
-    private lateinit var rightClickButton: MaterialButton
 
     private lateinit var bottomNavigation: BottomNavigationView
 
@@ -123,6 +127,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         favoriteAppsView = findViewById(R.id.favorite_apps)
         removeFavoriteButton = findViewById(R.id.remove_favorite)
         launchAppButton = findViewById(R.id.launch_app)
+        openKeyboardButton = findViewById(R.id.open_keyboard)
         displayPage = findViewById(R.id.display_page)
 
         // Touchpad Page
@@ -133,7 +138,6 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         toggleCursorButton = findViewById(R.id.toggle_cursor)
         blackoutButton = findViewById(R.id.blackout_phone_screen)
         leftClickButton = findViewById(R.id.btn_mouse_left)
-        rightClickButton = findViewById(R.id.btn_mouse_right)
 
         bottomNavigation = findViewById(R.id.bottom_navigation)
         trackpadView.listener = this
@@ -159,6 +163,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         findViewById<View>(R.id.select_app).setOnClickListener { selectApp() }
         removeFavoriteButton.setOnClickListener { removeSelectedFavorite() }
         launchAppButton.setOnClickListener { launchSelectedApp() }
+        openKeyboardButton.setOnClickListener { openKeyboard() }
 
         openAccessibilityButton.setOnClickListener {
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
@@ -207,10 +212,6 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
             clickAtCursor()
         }
 
-        rightClickButton.setOnClickListener {
-            HapticHelper.heavyClick(this)
-            longPressAtCursor()
-        }
     }
 
     private fun loadSettings() {
@@ -365,6 +366,57 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         Toast.makeText(this, "Please enable Accessibility Service for Trackpad control", Toast.LENGTH_SHORT).show()
     }
 
+    private fun openKeyboard() {
+        val service = RemoteGestureService.instance
+        if (service == null) {
+            showAccessibilityRequiredToast()
+            return
+        }
+        if (!service.hasEditableTarget()) {
+            Toast.makeText(this, "Tap a text field on the external app first", Toast.LENGTH_LONG).show()
+            return
+        }
+
+        val density = resources.displayMetrics.density
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding((24 * density).toInt(), (12 * density).toInt(), (24 * density).toInt(), 0)
+        }
+        val input = android.widget.EditText(this).apply {
+            hint = "Type for the external app"
+            setHintTextColor(Color.parseColor("#71717A"))
+            setTextColor(Color.WHITE)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+            minLines = 3
+            background = ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_glass_card)
+            setPadding((14 * density).toInt(), (12 * density).toInt(), (14 * density).toInt(), (12 * density).toInt())
+        }
+        container.addView(input)
+
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle("Keyboard: ${service.editableTargetPackage()}")
+            .setView(container)
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Send") { _, _ ->
+                if (!service.setEditableText(input.text)) {
+                    Toast.makeText(this, "${service.editableTargetPackage()} rejected text input", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .create()
+        dialog.setOnShowListener {
+            dialog.applyGlassStyle()
+            showKeyboard(input)
+        }
+        dialog.show()
+    }
+
+    private fun showKeyboard(input: View) {
+        input.requestFocus()
+        input.post {
+            WindowCompat.getInsetsController(window, input).show(WindowInsetsCompat.Type.ime())
+        }
+    }
+
     // ==================== APP LAUNCHER & FAVORITES ====================
 
     private fun selectDisplay() {
@@ -372,16 +424,20 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         val labels = displays.map(::displayLabel).toTypedArray()
         val checkedItem = displays.indexOfFirst { it.displayId == selectedDisplayId }
 
-        MaterialAlertDialogBuilder(this)
+        val dialog = MaterialAlertDialogBuilder(this)
             .setTitle("Select Target Display")
-            .setSingleChoiceItems(labels, checkedItem) { dialog, which ->
+            .setSingleChoiceItems(labels, checkedItem) { d, which ->
                 selectedDisplayId = displays[which].displayId
                 updateSelectedDisplay()
                 ensureCursorPosition()
-                dialog.dismiss()
+                d.dismiss()
             }
-            .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
-            .show()
+            .setNegativeButton("Cancel") { d, _ -> d.dismiss() }
+            .create()
+        dialog.setOnShowListener {
+            dialog.applyGlassStyle()
+        }
+        dialog.show()
     }
 
     private fun selectApp() {
@@ -393,20 +449,24 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
 
         val adapter = object : ArrayAdapter<ResolveInfo>(
             this,
-            android.R.layout.activity_list_item,
-            android.R.id.text1,
+            R.layout.item_dialog_app,
             apps,
         ) {
             override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-                val view = super.getView(position, convertView, parent)
+                val view = convertView ?: layoutInflater.inflate(R.layout.item_dialog_app, parent, false)
                 val app = getItem(position)!!
-                view.findViewById<TextView>(android.R.id.text1).text = app.loadLabel(packageManager)
-                view.findViewById<ImageView>(android.R.id.icon).setImageDrawable(app.loadIcon(packageManager))
+                val iconView = view.findViewById<ImageView>(R.id.app_icon)
+                val nameView = view.findViewById<TextView>(R.id.app_name)
+                val packageView = view.findViewById<TextView>(R.id.app_package)
+
+                nameView.text = app.loadLabel(packageManager)
+                packageView.text = app.activityInfo.packageName
+                iconView.setImageDrawable(app.loadIcon(packageManager))
                 return view
             }
         }
 
-        MaterialAlertDialogBuilder(this)
+        val dialog = MaterialAlertDialogBuilder(this)
             .setTitle("Add Favorite App")
             .setAdapter(adapter) { _, which ->
                 val app = apps[which]
@@ -415,8 +475,19 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
                 renderFavorites()
                 selectFavorite(app)
             }
-            .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
-            .show()
+            .setNegativeButton("Cancel") { d, _ -> d.dismiss() }
+            .create()
+        dialog.setOnShowListener {
+            dialog.applyGlassStyle()
+        }
+        dialog.show()
+    }
+
+    private fun androidx.appcompat.app.AlertDialog.applyGlassStyle() {
+        window?.setBackgroundDrawableResource(R.drawable.bg_glass_dialog)
+        getButton(DialogInterface.BUTTON_NEGATIVE)?.setTextColor(Color.parseColor("#A1A1AA"))
+        getButton(DialogInterface.BUTTON_POSITIVE)?.setTextColor(Color.WHITE)
+        getButton(DialogInterface.BUTTON_NEUTRAL)?.setTextColor(Color.parseColor("#A1A1AA"))
     }
 
     private fun renderFavorites() {

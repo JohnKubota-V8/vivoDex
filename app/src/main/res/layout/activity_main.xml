@@ -289,6 +289,7 @@
                             app:backgroundTint="@null"
                             app:icon="@drawable/ic_display"
                             app:iconTint="@color/white" />
+
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
@@ -426,6 +427,16 @@
                     </LinearLayout>
                 </FrameLayout>
             </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/open_keyboard"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:text="Keyboard for External App"
+                android:textColor="@color/text_glass_primary"
+                android:background="@drawable/bg_glass_button"
+                app:backgroundTint="@null" />
 
             <!-- Scroll Gestures Bar (Icon-Only Glass Buttons: Up, Down, Left, Right) -->
             <LinearLayout

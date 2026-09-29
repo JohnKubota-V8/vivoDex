@@ -11,6 +11,7 @@
 * **Secondary Display Launching:** Launch apps (YouTube, Chrome, etc.) directly onto the external monitor in fullscreen (16:9).
 * **Obsidian Dark Glass Trackpad:** Elegant monochrome OLED-black design system with tactile frosted glass surface.
 * **Real-time Tactile Gestures & Haptics:** Tap-to-click, two-finger smooth scroll, double-tap drag, and dedicated mouse buttons.
+* **Virtual Keyboard for External Apps:** Send text and keyboard input directly into editable fields on the secondary display.
 * **10-Second Auto-Hide Cursor:** Automatically hides the mouse pointer when idle for 10 seconds to keep video/reading views unobstructed, instantly waking upon touch.
 * **OLED Anti-Burn-in Protection:** Dual-axis Lissajous curve drift animation and alpha breathing on the phone's blackout screen to prevent OLED burn-in during long sessions.
 
@@ -74,6 +75,7 @@
 | **Scroll Buttons Bar** | Dedicated `Up` • `Down` • `Left` • `Right` buttons for quick discrete scrolling |
 | **Double-Tap & Hold** | Drag & drop (window moving or text selection) |
 | **Dedicated Mouse Bar** | Bottom buttons for physical-style **Left Click** and **Right Click** |
+| **External App Keyboard** | Send text directly to focused input fields on the secondary display |
 | **Pointer Speed Button** | Cycle sensitivity preset: `1.0x` • `1.5x` • `2.0x` • `2.5x` • `3.0x` |
 | **Cursor Toggle & Auto-Hide** | Toggle cursor manually, or let it auto-hide after 10s of inactivity |
 | **OLED Screen Dimmer** | Blackout phone screen with 2-axis anti-burn-in Lissajous drift animation |

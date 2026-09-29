@@ -8,6 +8,42 @@
         <item name="android:statusBarColor">@color/canvas_dark</item>
         <item name="android:navigationBarColor">@color/canvas_dark</item>
         <item name="android:windowBackground">@color/canvas_dark</item>
+
+        <!-- Obsidian Dark Glass Pop-Up / Dialog Theme -->
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.VivoDex.Dialog</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.VivoDex.Dialog</item>
+    </style>
+
+    <style name="ThemeOverlay.VivoDex.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="android:background">@drawable/bg_glass_dialog</item>
+        <item name="android:windowBackground">@drawable/bg_glass_dialog</item>
+        <item name="colorSurface">@color/canvas_surface</item>
+        <item name="colorOnSurface">@color/text_glass_primary</item>
+        <item name="colorOnSurfaceVariant">@color/text_glass_secondary</item>
+        <item name="colorPrimary">@color/white</item>
+        <item name="colorSecondary">@color/white</item>
+        <item name="colorControlActivated">@color/white</item>
+        <item name="materialAlertDialogTitleTextStyle">@style/Widget.VivoDex.Dialog.Title</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.VivoDex.Dialog.Button.Positive</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.VivoDex.Dialog.Button.Negative</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.VivoDex.Dialog.Button.Negative</item>
+    </style>
+
+    <style name="Widget.VivoDex.Dialog.Title" parent="MaterialAlertDialog.Material3.Title.Text">
+        <item name="android:textColor">@color/text_glass_primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">19sp</item>
+    </style>
+
+    <style name="Widget.VivoDex.Dialog.Button.Positive" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textStyle">bold</item>
+        <item name="rippleColor">#25FFFFFF</item>
+    </style>
+
+    <style name="Widget.VivoDex.Dialog.Button.Negative" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/text_glass_secondary</item>
+        <item name="rippleColor">#20FFFFFF</item>
     </style>
 
     <style name="Theme.VivoDex" parent="Base.Theme.VivoDex" />

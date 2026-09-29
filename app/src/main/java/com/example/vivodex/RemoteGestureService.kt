@@ -10,12 +10,14 @@ import android.graphics.PixelFormat
 import android.hardware.display.DisplayManager
 import android.os.Handler
 import android.os.Looper
+import android.os.Bundle
 import android.view.Display
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityNodeInfo
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -29,6 +31,10 @@ class RemoteGestureService : AccessibilityService() {
     private var blackoutView: View? = null
     private var blackoutWindowManager: WindowManager? = null
     private val blackoutAnimators = mutableListOf<Animator>()
+    private var editableNode: AccessibilityNodeInfo? = null
+    private var editablePackageName: String? = null
+    private var editableWindowId = -1
+    private var editableViewId: String? = null
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val autoHideCursorRunnable = Runnable {
@@ -39,7 +45,17 @@ class RemoteGestureService : AccessibilityService() {
         instance = this
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent) = Unit
+    override fun onAccessibilityEvent(event: AccessibilityEvent) {
+        if (event.packageName?.toString() == packageName) return
+        val source = event.source ?: return
+        val editable = if (source.isEditable) source else source.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+        if (editable?.isEditable == true) {
+            editableNode = AccessibilityNodeInfo.obtain(editable)
+            editablePackageName = event.packageName?.toString()
+            editableWindowId = editable.windowId
+            editableViewId = editable.viewIdResourceName
+        }
+    }
 
     override fun onInterrupt() = Unit
 
@@ -47,6 +63,10 @@ class RemoteGestureService : AccessibilityService() {
         mainHandler.removeCallbacks(autoHideCursorRunnable)
         removeCursor()
         removeBlackout()
+        editableNode = null
+        editablePackageName = null
+        editableWindowId = -1
+        editableViewId = null
         if (instance === this) instance = null
         super.onDestroy()
     }
@@ -181,6 +201,36 @@ class RemoteGestureService : AccessibilityService() {
     }
 
     fun isCursorVisible(): Boolean = cursorVisible
+
+    fun hasEditableTarget(): Boolean = editableNode?.isEditable == true
+
+    fun editableTargetPackage(): String = editablePackageName ?: "external app"
+
+    fun setEditableText(text: CharSequence): Boolean {
+        val node = liveEditableNode() ?: return false
+        val arguments = Bundle().apply {
+            putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
+        }
+        return node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)
+    }
+
+    private fun liveEditableNode(): AccessibilityNodeInfo? {
+        val root = windows.firstOrNull { it.id == editableWindowId }?.root ?: return editableNode
+        val focused = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+        if (focused?.isEditable == true) return focused
+        val viewId = editableViewId ?: return editableNode
+        return findEditableNode(root, viewId) ?: editableNode
+    }
+
+    private fun findEditableNode(node: AccessibilityNodeInfo, viewId: String): AccessibilityNodeInfo? {
+        if (node.isEditable && node.viewIdResourceName == viewId) return node
+        repeat(node.childCount) { index ->
+            node.getChild(index)?.let { child ->
+                findEditableNode(child, viewId)?.let { return it }
+            }
+        }
+        return null
+    }
 
     fun goBack(): Boolean = performGlobalAction(GLOBAL_ACTION_BACK)
 
