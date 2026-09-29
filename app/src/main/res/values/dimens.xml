@@ -1,0 +1,4 @@
+<resources>
+    <dimen name="nav_indicator_horizontal_inset">8dp</dimen>
+    <dimen name="nav_indicator_vertical_inset">5dp</dimen>
+</resources>

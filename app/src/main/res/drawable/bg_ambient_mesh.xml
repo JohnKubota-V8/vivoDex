@@ -7,16 +7,30 @@
         </shape>
     </item>
 
-    <!-- Subtle Monochrome Dark Vignette Depth -->
+    <!-- Large soft reflection behind the upper content. -->
     <item
-        android:top="-100dp"
-        android:right="-80dp"
-        android:bottom="180dp"
-        android:left="40dp">
+        android:top="-180dp"
+        android:right="-120dp"
+        android:bottom="240dp"
+        android:left="-40dp">
         <shape android:shape="oval">
             <gradient
                 android:type="radial"
-                android:gradientRadius="340dp"
+                android:gradientRadius="420dp"
+                android:startColor="#12FFFFFF"
+                android:endColor="#00000000" />
+        </shape>
+    </item>
+
+    <item
+        android:top="260dp"
+        android:left="120dp"
+        android:right="-160dp"
+        android:bottom="-220dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="360dp"
                 android:startColor="#0AFFFFFF"
                 android:endColor="#00000000" />
         </shape>

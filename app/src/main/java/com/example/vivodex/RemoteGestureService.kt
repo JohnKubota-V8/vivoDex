@@ -31,6 +31,7 @@ class RemoteGestureService : AccessibilityService() {
     private var blackoutView: View? = null
     private var blackoutWindowManager: WindowManager? = null
     private val blackoutAnimators = mutableListOf<Animator>()
+    private var keepScreenAwake = false
     private var editableNode: AccessibilityNodeInfo? = null
     private var editablePackageName: String? = null
     private var editableWindowId = -1
@@ -40,6 +41,7 @@ class RemoteGestureService : AccessibilityService() {
     private val autoHideCursorRunnable = Runnable {
         hideCursorForInactivity()
     }
+    private val autoDisableRunnable = Runnable { disableSelf() }
 
     override fun onServiceConnected() {
         instance = this
@@ -61,12 +63,10 @@ class RemoteGestureService : AccessibilityService() {
 
     override fun onDestroy() {
         mainHandler.removeCallbacks(autoHideCursorRunnable)
+        mainHandler.removeCallbacks(autoDisableRunnable)
         removeCursor()
         removeBlackout()
-        editableNode = null
-        editablePackageName = null
-        editableWindowId = -1
-        editableViewId = null
+        clearEditableTarget()
         if (instance === this) instance = null
         super.onDestroy()
     }
@@ -129,6 +129,35 @@ class RemoteGestureService : AccessibilityService() {
         val gesture = GestureDescription.Builder()
             .setDisplayId(displayId)
             .addStroke(GestureDescription.StrokeDescription(path, 0, 100))
+            .build()
+        return dispatchGesture(gesture, null, null)
+    }
+
+    fun pinch(displayId: Int, x: Float, y: Float, scale: Float): Boolean {
+        resetCursorInactivityTimer()
+        val display = getSystemService(DisplayManager::class.java).getDisplay(displayId) ?: return false
+        if (scale <= 0f) return false
+
+        val width = display.mode.physicalWidth.toFloat()
+        val height = display.mode.physicalHeight.toFloat()
+        val halfSpan = minOf(width, height) * 0.12f
+        val endHalfSpan = halfSpan * scale
+        val centerX = x.coerceIn(0f, width)
+        val centerY = y.coerceIn(0f, height)
+        fun pointX(span: Float, direction: Float) = (centerX + span * direction).coerceIn(0f, width)
+
+        val first = Path().apply {
+            moveTo(pointX(halfSpan, -1f), centerY)
+            lineTo(pointX(endHalfSpan, -1f), centerY)
+        }
+        val second = Path().apply {
+            moveTo(pointX(halfSpan, 1f), centerY)
+            lineTo(pointX(endHalfSpan, 1f), centerY)
+        }
+        val gesture = GestureDescription.Builder()
+            .setDisplayId(displayId)
+            .addStroke(GestureDescription.StrokeDescription(first, 0, 180))
+            .addStroke(GestureDescription.StrokeDescription(second, 0, 180))
             .build()
         return dispatchGesture(gesture, null, null)
     }
@@ -202,6 +231,34 @@ class RemoteGestureService : AccessibilityService() {
 
     fun isCursorVisible(): Boolean = cursorVisible
 
+    fun setKeepScreenAwake(enabled: Boolean) {
+        keepScreenAwake = enabled
+        val view = blackoutView ?: return
+        val params = view.layoutParams as? WindowManager.LayoutParams ?: return
+        params.flags = if (enabled) {
+            params.flags or WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+        } else {
+            params.flags and WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON.inv()
+        }
+        try {
+            blackoutWindowManager?.updateViewLayout(view, params)
+        } catch (_: IllegalArgumentException) { }
+    }
+
+    fun scheduleAutoDisable() {
+        mainHandler.removeCallbacks(autoDisableRunnable)
+        mainHandler.postDelayed(autoDisableRunnable, AUTO_DISABLE_DELAY_MS)
+    }
+
+    fun cancelAutoDisable() {
+        mainHandler.removeCallbacks(autoDisableRunnable)
+    }
+
+    fun disableNow() {
+        mainHandler.removeCallbacks(autoDisableRunnable)
+        disableSelf()
+    }
+
     fun hasEditableTarget(): Boolean = editableNode?.isEditable == true
 
     fun editableTargetPackage(): String = editablePackageName ?: "external app"
@@ -230,6 +287,13 @@ class RemoteGestureService : AccessibilityService() {
             }
         }
         return null
+    }
+
+    private fun clearEditableTarget() {
+        editableNode = null
+        editablePackageName = null
+        editableWindowId = -1
+        editableViewId = null
     }
 
     fun goBack(): Boolean = performGlobalAction(GLOBAL_ACTION_BACK)
@@ -311,7 +375,8 @@ class RemoteGestureService : AccessibilityService() {
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_FULLSCREEN or
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+                if (keepScreenAwake) WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON else 0,
             PixelFormat.OPAQUE,
         ).apply {
             layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
@@ -328,7 +393,11 @@ class RemoteGestureService : AccessibilityService() {
 
     private fun removeCursor() {
         mainHandler.removeCallbacks(autoHideCursorRunnable)
-        cursorView?.let { cursorWindowManager?.removeView(it) }
+        cursorView?.let {
+            try {
+                cursorWindowManager?.removeView(it)
+            } catch (_: IllegalArgumentException) { }
+        }
         cursorView = null
         cursorWindowManager = null
         cursorDisplayId = Display.INVALID_DISPLAY
@@ -348,6 +417,7 @@ class RemoteGestureService : AccessibilityService() {
 
     companion object {
         const val CURSOR_AUTO_HIDE_DELAY_MS = 10_000L
+        const val AUTO_DISABLE_DELAY_MS = 10 * 60 * 1000L
 
         var instance: RemoteGestureService? = null
             private set

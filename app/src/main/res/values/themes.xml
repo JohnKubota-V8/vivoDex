@@ -15,9 +15,7 @@
     </style>
 
     <style name="ThemeOverlay.VivoDex.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
-        <item name="android:background">@drawable/bg_glass_dialog</item>
-        <item name="android:windowBackground">@drawable/bg_glass_dialog</item>
-        <item name="colorSurface">@color/canvas_surface</item>
+        <item name="colorSurface">#F0141418</item>
         <item name="colorOnSurface">@color/text_glass_primary</item>
         <item name="colorOnSurfaceVariant">@color/text_glass_secondary</item>
         <item name="colorPrimary">@color/white</item>
@@ -27,6 +25,13 @@
         <item name="buttonBarPositiveButtonStyle">@style/Widget.VivoDex.Dialog.Button.Positive</item>
         <item name="buttonBarNegativeButtonStyle">@style/Widget.VivoDex.Dialog.Button.Negative</item>
         <item name="buttonBarNeutralButtonStyle">@style/Widget.VivoDex.Dialog.Button.Negative</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.VivoDex.Dialog</item>
+        <item name="android:backgroundDimAmount">0.72</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.VivoDex.Dialog" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">24dp</item>
     </style>
 
     <style name="Widget.VivoDex.Dialog.Title" parent="MaterialAlertDialog.Material3.Title.Text">
@@ -44,6 +49,10 @@
     <style name="Widget.VivoDex.Dialog.Button.Negative" parent="Widget.Material3.Button.TextButton.Dialog">
         <item name="android:textColor">@color/text_glass_secondary</item>
         <item name="rippleColor">#20FFFFFF</item>
+    </style>
+
+    <style name="Widget.VivoDex.BottomNavigation.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@android:color/transparent</item>
     </style>
 
     <style name="Theme.VivoDex" parent="Base.Theme.VivoDex" />
