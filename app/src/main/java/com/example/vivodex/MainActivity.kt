@@ -2,6 +2,7 @@ package com.example.vivodex
 
 import android.app.ActivityOptions
 import android.content.ActivityNotFoundException
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -588,9 +589,20 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
             .setView(layoutInflater.inflate(R.layout.dialog_accessibility, null))
             .setNegativeButton("Cancel", null)
             .setPositiveButton("Continue") { _, _ ->
-                startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                openAccessibilitySettings()
             }
             .show()
+    }
+
+    private fun openAccessibilitySettings() {
+        val serviceKey = ComponentName(this, RemoteGestureService::class.java).flattenToString()
+        val fragmentArgs = Bundle().apply {
+            putString(SETTINGS_FRAGMENT_ARG_KEY, serviceKey)
+        }
+        startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+            putExtra(SETTINGS_FRAGMENT_ARG_KEY, serviceKey)
+            putExtra(SETTINGS_FRAGMENT_ARGS, fragmentArgs)
+        })
     }
 
     private fun scheduleCursorMove(displayId: Int) {
@@ -923,5 +935,10 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
 
     private fun externalDisplay(): Display? = displayManager.displays.firstOrNull {
         it.displayId != Display.DEFAULT_DISPLAY && it.state != Display.STATE_OFF
+    }
+
+    companion object {
+        private const val SETTINGS_FRAGMENT_ARG_KEY = ":settings:fragment_args_key"
+        private const val SETTINGS_FRAGMENT_ARGS = ":settings:show_fragment_args"
     }
 }
