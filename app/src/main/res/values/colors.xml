@@ -3,27 +3,37 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- Obsidian Black Palette (Pure Dark Tone, No Colors) -->
-    <color name="canvas_dark">#FF000000</color>
-    <color name="canvas_surface">#FF0B0B0E</color>
+    <!-- Control Deck palette -->
+    <color name="canvas_dark">#FF06080D</color>
+    <color name="canvas_surface">#FF0D131B</color>
+    <color name="deck_surface_raised">#FF141C27</color>
+    <color name="deck_surface_selected">#FF172B36</color>
+    <color name="deck_stroke">#FF2A394A</color>
+    <color name="deck_stroke_strong">#FF50647B</color>
+    <color name="deck_accent">#FF5FD7F5</color>
+    <color name="deck_accent_dim">#245FD7F5</color>
+    <color name="deck_success">#FF64D99B</color>
+    <color name="deck_warning">#FFF5B95F</color>
+    <color name="deck_danger">#FFFF747C</color>
 
     <!-- Glass Layers (Monochrome Alphas) -->
-    <color name="glass_card_bg">#12FFFFFF</color>
-    <color name="glass_card_bg_active">#28FFFFFF</color>
-    <color name="glass_stroke">#22FFFFFF</color>
-    <color name="glass_stroke_bright">#50FFFFFF</color>
-    <color name="glass_trackpad_bg">#0EFFFFFF</color>
-    <color name="glass_button_bg">#18FFFFFF</color>
+    <color name="glass_card_bg">@color/canvas_surface</color>
+    <color name="glass_card_bg_active">@color/deck_surface_selected</color>
+    <color name="glass_stroke">@color/deck_stroke</color>
+    <color name="glass_stroke_bright">@color/deck_stroke_strong</color>
+    <color name="glass_trackpad_bg">@color/deck_surface_raised</color>
+    <color name="glass_button_bg">@color/deck_surface_raised</color>
 
     <!-- Monochrome Accents (White & Grays) -->
-    <color name="liquid_cyan">#FFFFFFFF</color>
-    <color name="liquid_cyan_dim">#80FFFFFF</color>
-    <color name="liquid_cyan_glow">#24FFFFFF</color>
+    <color name="liquid_cyan">@color/deck_accent</color>
+    <color name="liquid_cyan_dim">#995FD7F5</color>
+    <color name="liquid_cyan_glow">#245FD7F5</color>
     <color name="liquid_violet">#E4E4E7</color>
     <color name="liquid_violet_dim">#80E4E4E7</color>
     <color name="liquid_violet_glow">#1EFFFFFF</color>
 
     <!-- Text colors -->
-    <color name="text_glass_primary">#FFFFFFFF</color>
-    <color name="text_glass_secondary">#A1A1AA</color>
+    <color name="text_glass_primary">#FFF2F6FB</color>
+    <color name="text_glass_secondary">#FFB5C0CE</color>
+    <color name="text_glass_muted">#FF7F8A99</color>
 </resources>

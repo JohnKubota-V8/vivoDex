@@ -317,18 +317,23 @@ class RemoteGestureService : AccessibilityService() {
             setBackgroundColor(android.graphics.Color.BLACK)
             isClickable = true
             isFocusable = true
+            contentDescription = "Wake phone screen"
             setOnTouchListener { _, event ->
                 if (event.actionMasked == MotionEvent.ACTION_UP) {
-                    removeBlackout()
+                    performClick()
                 }
                 true
             }
+            setOnClickListener { removeBlackout() }
         }
 
         val hintText = TextView(windowContext).apply {
-            text = "🌙 Phone Screen Dimmed\n(Anti-Burn Active)\n\nTap anywhere to wake"
-            setTextColor(android.graphics.Color.WHITE)
-            textSize = 14f
+            text = "DISPLAY CONTROL ACTIVE\nPHONE PANEL DIMMED\nANTI-BURN PROTECTION ON\n\nTAP ANYWHERE TO WAKE"
+            setTextColor(getColor(R.color.deck_accent))
+            textSize = 13f
+            typeface = android.graphics.Typeface.MONOSPACE
+            setBackgroundResource(R.drawable.bg_glass_alert)
+            setPadding((20 * windowContext.resources.displayMetrics.density).toInt(), (16 * windowContext.resources.displayMetrics.density).toInt(), (20 * windowContext.resources.displayMetrics.density).toInt(), (16 * windowContext.resources.displayMetrics.density).toInt())
             gravity = Gravity.CENTER
             layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.WRAP_CONTENT,

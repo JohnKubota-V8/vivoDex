@@ -63,18 +63,18 @@ class TrackpadView @JvmOverloads constructor(
         }
     }
 
-    // Paints (Monochrome Dark Tone)
+    // Control Deck feedback paints.
     private val liquidCorePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#E6FFFFFF")
+        color = context.getColor(R.color.deck_accent)
         style = Paint.Style.FILL
     }
     private val liquidRingPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#80FFFFFF")
+        color = context.getColor(R.color.liquid_cyan_dim)
         style = Paint.Style.STROKE
         strokeWidth = 2.5f * resources.displayMetrics.density
     }
     private val liquidBridgePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#40FFFFFF")
+        color = context.getColor(R.color.liquid_cyan_glow)
         style = Paint.Style.STROKE
         strokeWidth = 6f * resources.displayMetrics.density
         strokeCap = Paint.Cap.ROUND
@@ -84,9 +84,15 @@ class TrackpadView @JvmOverloads constructor(
         strokeWidth = 2f * resources.displayMetrics.density
     }
     private val crystalDotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#15FFFFFF")
+        color = Color.parseColor("#3050647B")
         style = Paint.Style.FILL
     }
+    private val majorGridPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#4050647B")
+        style = Paint.Style.STROKE
+        strokeWidth = resources.displayMetrics.density
+    }
+    private val glowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     init {
         isClickable = true
@@ -103,7 +109,7 @@ class TrackpadView @JvmOverloads constructor(
 
         val density = resources.displayMetrics.density
 
-        // 1. Crystal Micro-Dot Grid
+        // Fine grid plus sparse major lines keep orientation visible without competing with input.
         val step = 38f * density
         val dotRadius = 1.2f * density
         var gx = step
@@ -116,6 +122,18 @@ class TrackpadView @JvmOverloads constructor(
             gx += step
         }
 
+        val majorStep = step * 4
+        var majorX = majorStep
+        while (majorX < width) {
+            canvas.drawLine(majorX, 0f, majorX, height.toFloat(), majorGridPaint)
+            majorX += majorStep
+        }
+        var majorY = majorStep
+        while (majorY < height) {
+            canvas.drawLine(0f, majorY, width.toFloat(), majorY, majorGridPaint)
+            majorY += majorStep
+        }
+
         // 2. Liquid Two-Finger Bridge (When scrolling)
         if (activeTouchPoints.size >= 2) {
             val p1 = activeTouchPoints[0]
@@ -123,11 +141,11 @@ class TrackpadView @JvmOverloads constructor(
             canvas.drawLine(p1.x, p1.y, p2.x, p2.y, liquidBridgePaint)
         }
 
-        // 3. Expanding Liquid Ripples (Monochrome White)
+        // Expanding cyan input ripples.
         val rippleIterator = activeRipples.iterator()
         while (rippleIterator.hasNext()) {
             val ripple = rippleIterator.next()
-            ripplePaint.color = Color.argb(ripple.alpha, 255, 255, 255)
+            ripplePaint.color = Color.argb(ripple.alpha, 95, 215, 245)
             canvas.drawCircle(ripple.x, ripple.y, ripple.radius, ripplePaint)
             ripple.radius += 5f * density
             ripple.alpha = (ripple.alpha - 15).coerceAtLeast(0)
@@ -139,20 +157,20 @@ class TrackpadView @JvmOverloads constructor(
             postInvalidateOnAnimation()
         }
 
-        // 4. Monochrome Luminous Orbs at Touch Points
+        // Touch reticles.
         for (point in activeTouchPoints) {
             val glowRadius = 48f * density
             val glowGradient = RadialGradient(
                 point.x, point.y, glowRadius,
                 intArrayOf(
-                    Color.parseColor("#45FFFFFF"),
-                    Color.parseColor("#14FFFFFF"),
+                    Color.parseColor("#455FD7F5"),
+                    Color.parseColor("#145FD7F5"),
                     Color.TRANSPARENT,
                 ),
                 floatArrayOf(0f, 0.5f, 1f),
                 Shader.TileMode.CLAMP,
             )
-            val glowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { shader = glowGradient }
+            glowPaint.shader = glowGradient
             canvas.drawCircle(point.x, point.y, glowRadius, glowPaint)
 
             // Inner droplet ring & core

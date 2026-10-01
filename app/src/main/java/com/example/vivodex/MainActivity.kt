@@ -366,7 +366,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         if (animate) {
             navGlassIndicator.animate()
                 .translationX(targetX)
-                .setDuration(320)
+                .setDuration(200)
                 .setInterpolator(android.view.animation.PathInterpolator(0.2f, 0.8f, 0.2f, 1f))
                 .start()
         } else {
@@ -387,7 +387,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         if (animate) {
             awakeGlassIndicator.animate()
                 .translationX(item.left.toFloat())
-                .setDuration(320)
+                .setDuration(200)
                 .setInterpolator(android.view.animation.PathInterpolator(0.2f, 0.8f, 0.2f, 1f))
                 .start()
         } else {
@@ -446,12 +446,12 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
 
         if (display == null) {
             statusView.text = "No external display connected\nConnect USB-C to Monitor or TV"
-            displayIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#71717A"))
+            displayIcon.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.text_glass_muted))
             trackpadView.isEnabled = false
             trackpadStatusView.text = "Display Disconnected"
         } else {
             statusView.text = "Connected: ${display.name}\n${display.mode.physicalWidth} x ${display.mode.physicalHeight} @ ${formatRefreshRate(display.refreshRate)} Hz"
-            displayIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#FFFFFF"))
+            displayIcon.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.deck_success))
             trackpadView.isEnabled = true
             trackpadStatusView.text = "Connected: ${display.name}"
         }
@@ -468,12 +468,12 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         if (isEnabled) {
             accessibilityStatusView.text = "Accessibility Active (Gestures & Cursor Ready)"
             accessibilityIcon.setImageResource(R.drawable.ic_check_circle)
-            accessibilityIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#FFFFFF"))
+            accessibilityIcon.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.deck_success))
             openAccessibilityButton.visibility = View.GONE
         } else {
             accessibilityStatusView.text = "Accessibility Disabled (Required for Virtual Mouse)"
             accessibilityIcon.setImageResource(R.drawable.ic_warning)
-            accessibilityIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#71717A"))
+            accessibilityIcon.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.deck_warning))
             openAccessibilityButton.visibility = View.VISIBLE
         }
     }
@@ -665,8 +665,8 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         }
         val input = android.widget.EditText(this).apply {
             hint = "Type for the external app"
-            setHintTextColor(Color.parseColor("#71717A"))
-            setTextColor(Color.WHITE)
+            setHintTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_glass_muted))
+            setTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_glass_primary))
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
             minLines = 3
             importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
@@ -796,9 +796,9 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
 
         if (favorites.isEmpty()) {
             val emptyNotice = TextView(this).apply {
-                text = "No favorite apps added yet. Tap 'Add App' below to select shortcuts."
+                text = "No app shortcuts configured. Use ADD APP to create a launch rail."
                 textSize = 13f
-                setTextColor(Color.parseColor("#888888"))
+                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_glass_muted))
                 setPadding((8 * density).toInt(), (14 * density).toInt(), (8 * density).toInt(), (14 * density).toInt())
             }
             favoriteAppsView.addView(emptyNotice)
@@ -819,6 +819,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         favorites.forEach { app ->
             val isSelected = (selectedApp?.activityInfo?.packageName == app.activityInfo.packageName)
 
+            val appName = app.loadLabel(packageManager).toString()
             val appContainer = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 gravity = android.view.Gravity.CENTER_HORIZONTAL
@@ -830,13 +831,15 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
 
             val card = com.google.android.material.card.MaterialCardView(this).apply {
                 layoutParams = LinearLayout.LayoutParams((60 * density).toInt(), (60 * density).toInt())
-                radius = 18 * density
-                cardElevation = if (isSelected) (4 * density) else 0f
+                radius = 10 * density
+                cardElevation = 0f
                 strokeWidth = if (isSelected) (2f * density).toInt() else (1 * density).toInt()
-                strokeColor = if (isSelected) Color.parseColor("#FFFFFF") else Color.parseColor("#26FFFFFF")
-                setCardBackgroundColor(if (isSelected) Color.parseColor("#28FFFFFF") else Color.parseColor("#12FFFFFF"))
+                strokeColor = ContextCompat.getColor(this@MainActivity, if (isSelected) R.color.deck_accent else R.color.deck_stroke)
+                setCardBackgroundColor(ContextCompat.getColor(this@MainActivity, if (isSelected) R.color.deck_surface_selected else R.color.deck_surface_raised))
                 isClickable = true
                 isFocusable = true
+                contentDescription = "Select $appName"
+                stateDescription = if (isSelected) "Selected" else "Not selected"
 
                 setOnClickListener {
                     selectFavorite(app)
@@ -858,16 +861,16 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
             card.addView(iconView)
 
             val appLabel = TextView(this).apply {
-                text = app.loadLabel(packageManager)
+                text = appName
                 textSize = 11.5f
                 maxLines = 1
                 ellipsize = android.text.TextUtils.TruncateAt.END
                 gravity = android.view.Gravity.CENTER_HORIZONTAL
                 if (isSelected) {
-                    setTextColor(Color.parseColor("#FFFFFF"))
+                    setTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_glass_primary))
                     setTypeface(typeface, android.graphics.Typeface.BOLD)
                 } else {
-                    setTextColor(Color.parseColor("#A1A1AA"))
+                    setTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_glass_secondary))
                 }
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,

@@ -11,10 +11,10 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@android:color/transparent"
-        app:title="vivoDex"
+        app:title="VIVODEX"
         app:titleCentered="false"
         app:titleTextColor="@color/text_glass_primary"
-        app:subtitle="Desktop Mode"
+        app:subtitle="@string/control_deck"
         app:subtitleTextColor="@color/text_glass_secondary"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -39,6 +39,16 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/output_link"
+                    android:textColor="@color/deck_accent"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.12" />
+
                 <!-- Display Connection Card -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/card_display_status"
@@ -49,7 +59,7 @@
                     app:cardBackgroundColor="@android:color/transparent"
                     app:cardElevation="0dp"
                     app:strokeWidth="0dp"
-                    app:cardCornerRadius="20dp">
+                    app:cardCornerRadius="14dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -135,6 +145,16 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/input_bridge"
+                    android:textColor="@color/deck_accent"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.12" />
+
                 <!-- Accessibility Status Card -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/card_accessibility"
@@ -145,7 +165,7 @@
                     app:cardBackgroundColor="@android:color/transparent"
                     app:cardElevation="0dp"
                     app:strokeWidth="0dp"
-                    app:cardCornerRadius="20dp">
+                    app:cardCornerRadius="14dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -199,6 +219,16 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/app_launch"
+                    android:textColor="@color/deck_accent"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.12" />
+
                 <!-- Favorite Apps Launcher Card -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
@@ -208,7 +238,7 @@
                     app:cardBackgroundColor="@android:color/transparent"
                     app:cardElevation="0dp"
                     app:strokeWidth="0dp"
-                    app:cardCornerRadius="20dp">
+                    app:cardCornerRadius="14dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -228,7 +258,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="Tap an app icon to launch directly onto the target display"
+                            android:text="Select a favorite, then choose where to open it."
                             android:textAppearance="?attr/textAppearanceBodySmall"
                             android:textColor="@color/text_glass_secondary" />
 
@@ -271,7 +301,7 @@
                                 android:layout_marginStart="8dp"
                                 android:text="Remove"
                                 android:visibility="gone"
-                                android:textColor="#FF5252"
+                                android:textColor="@color/deck_danger"
                                 android:background="@drawable/bg_glass_button"
                                 app:backgroundTint="@null" />
                         </LinearLayout>
@@ -419,7 +449,7 @@
                 app:cardBackgroundColor="@android:color/transparent"
                 app:cardElevation="0dp"
                 app:strokeWidth="0dp"
-                app:cardCornerRadius="22dp">
+                    app:cardCornerRadius="14dp">
 
                 <FrameLayout
                     android:layout_width="match_parent"
@@ -429,7 +459,7 @@
                         android:id="@+id/trackpad"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:contentDescription="Trackpad. Swipe one finger to move the pointer. Tap once to click. Use two fingers to scroll or tap with two fingers for a context menu." />
+                        android:contentDescription="@string/trackpad_description" />
 
                     <!-- Centered watermark instructions -->
                     <LinearLayout
@@ -444,7 +474,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="vivoDex"
+                            android:text="CONTROL SURFACE"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
                             android:textStyle="bold"
                             android:letterSpacing="0.25"
@@ -454,7 +484,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="1 finger: move &amp; tap • 2 fingers: scroll &amp; right-click"
+                            android:text="1 FINGER: MOVE + TAP  /  2 FINGERS: SCROLL + CONTEXT"
                             android:textAppearance="?attr/textAppearanceLabelSmall"
                             android:textColor="@color/text_glass_secondary" />
             </LinearLayout>
@@ -659,7 +689,7 @@
             app:itemActiveIndicatorStyle="@style/Widget.VivoDex.BottomNavigation.ActiveIndicator"
             app:itemIconTint="@color/nav_item_color"
             app:itemTextColor="@color/nav_item_color"
-            app:itemRippleColor="#20FFFFFF"
+            app:itemRippleColor="@color/deck_accent_dim"
             app:menu="@menu/bottom_nav_menu" />
     </FrameLayout>
 

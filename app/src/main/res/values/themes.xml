@@ -1,26 +1,26 @@
 <resources>
-    <!-- Base application theme configured for Liquid Glass. -->
+    <!-- Base application theme configured for Control Deck. -->
     <style name="Base.Theme.VivoDex" parent="Theme.Material3.Dark.NoActionBar">
-        <item name="colorPrimary">@color/white</item>
-        <item name="colorSecondary">#E4E4E7</item>
-        <item name="colorSecondaryContainer">#25FFFFFF</item>
-        <item name="colorOnSecondaryContainer">@color/white</item>
+        <item name="colorPrimary">@color/deck_accent</item>
+        <item name="colorSecondary">@color/deck_success</item>
+        <item name="colorSecondaryContainer">@color/deck_accent_dim</item>
+        <item name="colorOnSecondaryContainer">@color/text_glass_primary</item>
         <item name="android:statusBarColor">@color/canvas_dark</item>
         <item name="android:navigationBarColor">@color/canvas_dark</item>
         <item name="android:windowBackground">@color/canvas_dark</item>
 
-        <!-- Obsidian Dark Glass Pop-Up / Dialog Theme -->
+        <!-- Control Deck dialog theme -->
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.VivoDex.Dialog</item>
         <item name="alertDialogTheme">@style/ThemeOverlay.VivoDex.Dialog</item>
     </style>
 
     <style name="ThemeOverlay.VivoDex.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
-        <item name="colorSurface">#F0141418</item>
+        <item name="colorSurface">@color/deck_surface_raised</item>
         <item name="colorOnSurface">@color/text_glass_primary</item>
         <item name="colorOnSurfaceVariant">@color/text_glass_secondary</item>
-        <item name="colorPrimary">@color/white</item>
-        <item name="colorSecondary">@color/white</item>
-        <item name="colorControlActivated">@color/white</item>
+        <item name="colorPrimary">@color/deck_accent</item>
+        <item name="colorSecondary">@color/deck_accent</item>
+        <item name="colorControlActivated">@color/deck_accent</item>
         <item name="materialAlertDialogTitleTextStyle">@style/Widget.VivoDex.Dialog.Title</item>
         <item name="buttonBarPositiveButtonStyle">@style/Widget.VivoDex.Dialog.Button.Positive</item>
         <item name="buttonBarNegativeButtonStyle">@style/Widget.VivoDex.Dialog.Button.Negative</item>
@@ -31,7 +31,7 @@
 
     <style name="ShapeAppearanceOverlay.VivoDex.Dialog" parent="">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">24dp</item>
+        <item name="cornerSize">16dp</item>
     </style>
 
     <style name="Widget.VivoDex.Dialog.Title" parent="MaterialAlertDialog.Material3.Title.Text">
@@ -41,7 +41,7 @@
     </style>
 
     <style name="Widget.VivoDex.Dialog.Button.Positive" parent="Widget.Material3.Button.TextButton.Dialog">
-        <item name="android:textColor">@color/white</item>
+        <item name="android:textColor">@color/deck_accent</item>
         <item name="android:textStyle">bold</item>
         <item name="rippleColor">#25FFFFFF</item>
     </style>
