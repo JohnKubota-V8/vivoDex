@@ -1,11 +1,13 @@
 package com.example.vivodex
 
 import android.app.ActivityOptions
+import android.app.ActivityManager
 import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -78,6 +80,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
     private lateinit var blackoutButton: MaterialButton
     private lateinit var moreControlsButton: MaterialButton
     private lateinit var leftClickButton: MaterialButton
+    private lateinit var rightClickButton: MaterialButton
     private lateinit var zoomControls: View
     private lateinit var zoomSlider: Slider
 
@@ -86,6 +89,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
 
     // State
     private var selectedDisplayId: Int? = null
+    private var selectedDisplayWasAutomatic = true
     private var selectedApp: ResolveInfo? = null
     private val favoritePackages = linkedSetOf<String>()
     private var cursorX = 0f
@@ -120,9 +124,23 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
     private var currentSpeedIndex = 1 // Default 1.5x
 
     private val displayListener = object : DisplayManager.DisplayListener {
-        override fun onDisplayAdded(displayId: Int) = refreshExternalDisplay()
-        override fun onDisplayChanged(displayId: Int) = refreshExternalDisplay()
-        override fun onDisplayRemoved(displayId: Int) = refreshExternalDisplay()
+        override fun onDisplayAdded(displayId: Int) {
+            if (selectedDisplayWasAutomatic && displayId != Display.DEFAULT_DISPLAY) selectTargetDisplay(displayId, automatic = true)
+            refreshExternalDisplay()
+        }
+
+        override fun onDisplayChanged(displayId: Int) {
+            if (displayId == selectedDisplayId) clampCursorToTarget()
+            refreshExternalDisplay()
+        }
+
+        override fun onDisplayRemoved(displayId: Int) {
+            if (displayId == selectedDisplayId) {
+                cancelPendingInput()
+                selectTargetDisplay(externalDisplay()?.displayId ?: Display.DEFAULT_DISPLAY, automatic = true)
+            }
+            refreshExternalDisplay()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -130,7 +148,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        prefs = getSharedPreferences("vivodex_prefs", MODE_PRIVATE)
+        prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
         displayManager = getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
 
         initViews()
@@ -149,7 +167,9 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
 
     override fun onStart() {
         super.onStart()
+        prefs.edit().remove(AUTO_DISABLE_DEADLINE).apply()
         RemoteGestureService.instance?.cancelAutoDisable()
+        RemoteGestureService.onConnectionChanged = { updateAccessibilityStatus() }
         displayManager.registerDisplayListener(displayListener, null)
         refreshExternalDisplay()
         updateAccessibilityStatus()
@@ -157,14 +177,11 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
 
     override fun onStop() {
         displayManager.unregisterDisplayListener(displayListener)
-        Choreographer.getInstance().removeFrameCallback(cursorFrameCallback)
-        cursorUpdateScheduled = false
-        pendingCursorDisplayId = null
-        scrollHandler.removeCallbacks(flushScroll)
-        scrollScheduled = false
-        pendingScrollX = 0f
-        pendingScrollY = 0f
-        if (prefs.getBoolean("auto_disable_accessibility", true)) {
+        RemoteGestureService.onConnectionChanged = null
+        cancelPendingInput()
+        if (!isChangingConfigurations && prefs.getBoolean(PREF_AUTO_DISABLE, true)) {
+            val deadline = System.currentTimeMillis() + RemoteGestureService.AUTO_DISABLE_DELAY_MS
+            prefs.edit().putLong(AUTO_DISABLE_DEADLINE, deadline).apply()
             RemoteGestureService.instance?.scheduleAutoDisable()
         }
         super.onStop()
@@ -200,6 +217,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         blackoutButton = findViewById(R.id.blackout_phone_screen)
         moreControlsButton = findViewById(R.id.more_controls)
         leftClickButton = findViewById(R.id.btn_mouse_left)
+        rightClickButton = findViewById(R.id.btn_mouse_right)
         zoomControls = findViewById(R.id.zoom_controls)
         zoomSlider = findViewById(R.id.zoom_slider)
 
@@ -246,15 +264,22 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
                 R.id.awake_off -> "off"
                 else -> "auto"
             }
-            prefs.edit().putString("keep_awake_mode", mode).apply()
+            prefs.edit().putString(PREF_KEEP_AWAKE_MODE, mode).apply()
             updateKeepScreenAwake()
         }
         autoDisableSwitch.setOnCheckedChangeListener { _, enabled ->
-            prefs.edit().putBoolean("auto_disable_accessibility", enabled).apply()
+            prefs.edit().putBoolean(PREF_AUTO_DISABLE, enabled).apply()
+            if (!enabled) {
+                prefs.edit().remove(AUTO_DISABLE_DEADLINE).apply()
+                RemoteGestureService.instance?.cancelAutoDisable()
+            }
         }
         findViewById<MaterialButton>(R.id.disable_accessibility_now).setOnClickListener {
-            RemoteGestureService.instance?.disableNow()
-            showAlert("Accessibility will be turned off")
+            val service = RemoteGestureService.instance
+            if (service == null) showAccessibilityRequiredToast() else {
+                service.disableNow()
+                showAlert("Accessibility will be turned off")
+            }
         }
 
         // Speed picker
@@ -262,7 +287,12 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
 
         // Cursor toggle
         toggleCursorButton.setOnClickListener {
-            val visible = RemoteGestureService.instance?.toggleCursor() ?: true
+            val service = RemoteGestureService.instance
+            if (service == null) {
+                showAccessibilityRequiredToast()
+                return@setOnClickListener
+            }
+            val visible = service.toggleCursor()
             HapticHelper.click(this)
             trackpadStatusView.text = if (visible) "Cursor Visible" else "Cursor Hidden"
         }
@@ -314,6 +344,10 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
             HapticHelper.heavyClick(this)
             clickAtCursor()
         }
+        rightClickButton.setOnClickListener {
+            HapticHelper.heavyClick(this)
+            longPressAtCursor()
+        }
 
     }
 
@@ -362,25 +396,25 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
     }
 
     private fun loadSettings() {
-        favoritePackages += prefs.getStringSet("packages", emptySet()).orEmpty()
-        val savedSpeed = prefs.getFloat("sensitivity", 1.5f)
+        favoritePackages += prefs.getStringSet(PREF_PACKAGES, emptySet()).orEmpty()
+        val savedSpeed = prefs.getFloat(PREF_SENSITIVITY, 1.5f)
         currentSpeedIndex = speedPresets.indexOfFirst { kotlin.math.abs(it - savedSpeed) < 0.1f }.coerceAtLeast(0)
         applyPointerSpeed(speedPresets[currentSpeedIndex])
         awakeModeGroup.check(
-            when (prefs.getString("keep_awake_mode", "auto")) {
+            when (prefs.getString(PREF_KEEP_AWAKE_MODE, "auto")) {
                 "on" -> R.id.awake_on
                 "off" -> R.id.awake_off
                 else -> R.id.awake_auto
             }
         )
-        autoDisableSwitch.isChecked = prefs.getBoolean("auto_disable_accessibility", true)
+        autoDisableSwitch.isChecked = prefs.getBoolean(PREF_AUTO_DISABLE, true)
     }
 
     private fun cyclePointerSpeed() {
         currentSpeedIndex = (currentSpeedIndex + 1) % speedPresets.size
         val newSpeed = speedPresets[currentSpeedIndex]
         applyPointerSpeed(newSpeed)
-        prefs.edit().putFloat("sensitivity", newSpeed).apply()
+        prefs.edit().putFloat(PREF_SENSITIVITY, newSpeed).apply()
         HapticHelper.click(this)
         showAlert("Pointer Speed: ${newSpeed}x")
     }
@@ -423,7 +457,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         }
 
         if (availableDisplays().none { it.displayId == selectedDisplayId }) {
-            selectedDisplayId = display?.displayId ?: Display.DEFAULT_DISPLAY
+            selectTargetDisplay(display?.displayId ?: Display.DEFAULT_DISPLAY, automatic = true)
         }
         updateSelectedDisplay()
         updateKeepScreenAwake()
@@ -445,7 +479,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
     }
 
     private fun updateKeepScreenAwake() {
-        val mode = prefs.getString("keep_awake_mode", "auto") ?: "auto"
+        val mode = prefs.getString(PREF_KEEP_AWAKE_MODE, "auto") ?: "auto"
         val active = when (mode) {
             "on" -> true
             "off" -> false
@@ -479,30 +513,29 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
     }
 
     private fun ensureCursorPosition() {
-        val display = displayManager.getDisplay(selectedDisplayId ?: externalDisplay()?.displayId ?: return) ?: return
+        val displayId = selectedDisplayId ?: externalDisplay()?.displayId ?: return
+        val bounds = displayBounds(displayId) ?: return
         if (cursorX == 0f && cursorY == 0f) {
-            cursorX = display.mode.physicalWidth / 2f
-            cursorY = display.mode.physicalHeight / 2f
+            cursorX = bounds.width() / 2f
+            cursorY = bounds.height() / 2f
         }
-        scheduleCursorMove(display.displayId)
+        clampCursorToTarget()
+        scheduleCursorMove(displayId)
     }
 
     // ==================== TRACKPAD CALLBACKS ====================
 
     override fun onPointerMove(dx: Float, dy: Float) {
-        val display = displayManager.getDisplay(selectedDisplayId ?: externalDisplay()?.displayId ?: return) ?: return
-        cursorX = (cursorX + dx).coerceIn(0f, display.mode.physicalWidth.toFloat())
-        cursorY = (cursorY + dy).coerceIn(0f, display.mode.physicalHeight.toFloat())
+        val displayId = selectedDisplayId ?: externalDisplay()?.displayId ?: return
+        val bounds = displayBounds(displayId) ?: return
+        cursorX = (cursorX + dx).coerceIn(0f, bounds.width().toFloat() - 1f)
+        cursorY = (cursorY + dy).coerceIn(0f, bounds.height().toFloat() - 1f)
 
-        scheduleCursorMove(display.displayId)
+        scheduleCursorMove(displayId)
         trackpadStatusView.text = "Pointer: ${cursorX.toInt()}, ${cursorY.toInt()}"
     }
 
     override fun onSingleTap() {
-        clickAtCursor()
-    }
-
-    override fun onDoubleTap() {
         clickAtCursor()
     }
 
@@ -619,7 +652,8 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
             showAccessibilityRequiredToast()
             return
         }
-        if (!service.hasEditableTarget()) {
+        val displayId = selectedDisplayId ?: return
+        if (!service.hasEditableTarget(displayId)) {
             showAlert("Tap a text field on the external app first", long = true)
             return
         }
@@ -642,12 +676,12 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         container.addView(input)
 
         val dialog = MaterialAlertDialogBuilder(this)
-            .setTitle("Keyboard: ${service.editableTargetPackage()}")
+            .setTitle("Keyboard: ${service.editableTargetPackage(displayId)}")
             .setView(container)
             .setNegativeButton("Cancel", null)
             .setPositiveButton("Send") { _, _ ->
-                if (!service.setEditableText(input.text)) {
-                    showAlert("${service.editableTargetPackage()} rejected text input")
+                if (!service.setEditableText(displayId, input.text)) {
+                    showAlert("${service.editableTargetPackage(displayId)} rejected text input")
                 }
             }
             .create()
@@ -688,9 +722,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
             .create()
         options.setOnCheckedChangeListener { _, checkedId ->
             displayByOption[checkedId]?.let { display ->
-                selectedDisplayId = display.displayId
-                updateSelectedDisplay()
-                ensureCursorPosition()
+                selectTargetDisplay(display.displayId, automatic = false)
                 dialog.dismiss()
             }
         }
@@ -735,8 +767,8 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
             val app = adapter.getItem(position) ?: return@setOnItemClickListener
             favoritePackages += app.activityInfo.packageName
             saveFavorites()
+            selectedApp = app
             renderFavorites()
-            selectFavorite(app)
             dialog.dismiss()
         }
         search.doAfterTextChanged { text ->
@@ -807,12 +839,8 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
                 isFocusable = true
 
                 setOnClickListener {
-                    val wasSelected = (selectedApp?.activityInfo?.packageName == app.activityInfo.packageName)
                     selectFavorite(app)
                     HapticHelper.click(this@MainActivity)
-                    if (wasSelected) {
-                        launchSelectedApp()
-                    }
                 }
             }
 
@@ -853,8 +881,13 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         }
 
         if (selectedApp?.activityInfo?.packageName !in favoritePackages) selectedApp = null
-        if (selectedApp == null) favorites.firstOrNull()?.let(::selectFavorite)
+        if (selectedApp == null) selectedApp = favorites.firstOrNull()
         removeFavoriteButton.visibility = if (selectedApp == null) View.GONE else View.VISIBLE
+        selectedApp?.let { app ->
+            launchAppButton.isEnabled = true
+            launchOnPhoneButton.isEnabled = true
+            launchAppButton.text = "Launch ${app.loadLabel(packageManager)} on Display"
+        }
     }
 
     private fun selectFavorite(app: ResolveInfo) {
@@ -864,9 +897,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         launchOnPhoneButton.isEnabled = true
         launchAppButton.text = "Launch ${app.loadLabel(packageManager)} on Display"
         removeFavoriteButton.visibility = View.VISIBLE
-        if (prevSelected?.activityInfo?.packageName != app.activityInfo.packageName) {
-            renderFavorites()
-        }
+        if (prevSelected?.activityInfo?.packageName != app.activityInfo.packageName) renderFavorites()
     }
 
     private fun removeSelectedFavorite() {
@@ -881,7 +912,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
     }
 
     private fun saveFavorites() {
-        prefs.edit().putStringSet("packages", favoritePackages).apply()
+        prefs.edit().putStringSet(PREF_PACKAGES, favoritePackages).apply()
     }
 
     private fun launchableApps(): List<ResolveInfo> = packageManager
@@ -909,13 +940,23 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
             .setClassName(app.activityInfo.packageName, app.activityInfo.name)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
+        if (displayId != Display.DEFAULT_DISPLAY && !packageManager.hasSystemFeature(PackageManager.FEATURE_ACTIVITIES_ON_SECONDARY_DISPLAYS)) {
+            offerPhoneLaunch(app)
+            return
+        }
+        val activityManager = getSystemService(ActivityManager::class.java)
+        if (!activityManager.isActivityStartAllowedOnDisplay(this, displayId, intent)) {
+            offerPhoneLaunch(app)
+            return
+        }
+
         val options = ActivityOptions.makeBasic().apply {
             setLaunchDisplayId(displayId)
         }
 
         try {
             startActivity(intent, options.toBundle())
-            showAlert("Launching $appName on ${displayLabel(displayManager.getDisplay(displayId) ?: return)}")
+            showAlert("Launch requested on ${displayLabel(displayManager.getDisplay(displayId) ?: return)}")
         } catch (_: ActivityNotFoundException) {
             showAlert("The selected app is no longer available", long = true)
         } catch (_: SecurityException) {
@@ -938,7 +979,54 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
     }
 
     companion object {
+        private const val PREFS_NAME = "vivodex_prefs"
+        private const val PREF_PACKAGES = "packages"
+        private const val PREF_SENSITIVITY = "sensitivity"
+        private const val PREF_KEEP_AWAKE_MODE = "keep_awake_mode"
+        private const val PREF_AUTO_DISABLE = "auto_disable_accessibility"
+        const val AUTO_DISABLE_DEADLINE = "auto_disable_deadline"
         private const val SETTINGS_FRAGMENT_ARG_KEY = ":settings:fragment_args_key"
         private const val SETTINGS_FRAGMENT_ARGS = ":settings:show_fragment_args"
+    }
+
+    private fun cancelPendingInput() {
+        Choreographer.getInstance().removeFrameCallback(cursorFrameCallback)
+        cursorUpdateScheduled = false
+        pendingCursorDisplayId = null
+        scrollHandler.removeCallbacks(flushScroll)
+        scrollScheduled = false
+        pendingScrollX = 0f
+        pendingScrollY = 0f
+    }
+
+    private fun selectTargetDisplay(displayId: Int, automatic: Boolean) {
+        selectedDisplayId = displayId
+        selectedDisplayWasAutomatic = automatic
+        cursorX = 0f
+        cursorY = 0f
+        updateSelectedDisplay()
+        ensureCursorPosition()
+    }
+
+    private fun clampCursorToTarget() {
+        val displayId = selectedDisplayId ?: return
+        val bounds = displayBounds(displayId) ?: return
+        cursorX = cursorX.coerceIn(0f, bounds.width().toFloat() - 1f)
+        cursorY = cursorY.coerceIn(0f, bounds.height().toFloat() - 1f)
+    }
+
+    private fun displayBounds(displayId: Int): android.graphics.Rect? =
+        RemoteGestureService.instance?.displayBounds(displayId) ?: displayManager.getDisplay(displayId)?.let {
+            val metrics = createDisplayContext(it).resources.displayMetrics
+            android.graphics.Rect(0, 0, metrics.widthPixels, metrics.heightPixels)
+        }
+
+    private fun offerPhoneLaunch(app: ResolveInfo) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("This display only mirrors your phone")
+            .setMessage("${app.loadLabel(packageManager)} cannot open as a separate window here. Open it on your phone instead?")
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Open on Phone") { _, _ -> launchApp(app, Display.DEFAULT_DISPLAY) }
+            .show()
     }
 }

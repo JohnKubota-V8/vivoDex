@@ -23,7 +23,6 @@ class TrackpadView @JvmOverloads constructor(
         fun onPointerMove(dx: Float, dy: Float)
         fun onSingleTap()
         fun onTwoFingerTap()
-        fun onDoubleTap()
         fun onScroll(deltaX: Float, deltaY: Float)
         fun onDragStart()
         fun onDragMove(dx: Float, dy: Float)
@@ -44,6 +43,7 @@ class TrackpadView @JvmOverloads constructor(
     // Multitouch / Gestures
     private var isScrolling = false
     private var isDragging = false
+    private var isDragCandidate = false
     private var hasMultiFingerBeenUsed = false
     private var twoFingerDownTime = 0L
     private var twoFingerStartY = 0f
@@ -56,6 +56,12 @@ class TrackpadView @JvmOverloads constructor(
 
     // Visual feedback points
     private val activeTouchPoints = mutableListOf<PointF>()
+    private val startDragRunnable = Runnable {
+        if (isDragCandidate && !hasMultiFingerBeenUsed) {
+            isDragging = true
+            listener?.onDragStart()
+        }
+    }
 
     // Paints (Monochrome Dark Tone)
     private val liquidCorePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -167,20 +173,20 @@ class TrackpadView @JvmOverloads constructor(
                 downY = event.y
                 lastTouchX = event.x
                 lastTouchY = event.y
-                downTime = System.currentTimeMillis()
+                downTime = event.eventTime
                 isScrolling = false
                 hasMultiFingerBeenUsed = false
 
                 spawnRipple(event.x, event.y)
 
-                // Double tap and drag detection
+                // The second touch becomes a drag only when held or moved.
                 val timeSinceLastTap = downTime - lastTapTime
                 if (timeSinceLastTap < 280) {
-                    isDragging = true
-                    HapticHelper.heavyClick(context)
-                    listener?.onDragStart()
+                    isDragCandidate = true
+                    postDelayed(startDragRunnable, DRAG_HOLD_TIMEOUT_MS)
                 } else {
                     isDragging = false
+                    isDragCandidate = false
                 }
             }
 
@@ -189,7 +195,9 @@ class TrackpadView @JvmOverloads constructor(
                     hasMultiFingerBeenUsed = true
                     isScrolling = true
                     isDragging = false
-                    twoFingerDownTime = System.currentTimeMillis()
+                    isDragCandidate = false
+                    removeCallbacks(startDragRunnable)
+                    twoFingerDownTime = event.eventTime
                     val midY = (event.getY(0) + event.getY(1)) / 2f
                     twoFingerStartY = midY
                     lastTwoFingerY = midY
@@ -218,6 +226,12 @@ class TrackpadView @JvmOverloads constructor(
                     lastTouchX = event.x
                     lastTouchY = event.y
 
+                    if (isDragCandidate && !isDragging && hypot(dx.toDouble(), dy.toDouble()) >= 16f * resources.displayMetrics.density) {
+                        isDragging = true
+                        removeCallbacks(startDragRunnable)
+                        HapticHelper.heavyClick(context)
+                        listener?.onDragStart()
+                    }
                     if (isDragging) {
                         listener?.onDragMove(dx, dy)
                     } else {
@@ -228,7 +242,7 @@ class TrackpadView @JvmOverloads constructor(
 
             MotionEvent.ACTION_POINTER_UP -> {
                 if (event.pointerCount == 2 && isScrolling) {
-                    val duration = System.currentTimeMillis() - twoFingerDownTime
+                    val duration = event.eventTime - twoFingerDownTime
                     val moveDist = abs(lastTwoFingerY - twoFingerStartY)
                     if (duration < 250 && moveDist < 16f * resources.displayMetrics.density) {
                         HapticHelper.click(context)
@@ -242,7 +256,8 @@ class TrackpadView @JvmOverloads constructor(
 
             MotionEvent.ACTION_UP -> {
                 parent?.requestDisallowInterceptTouchEvent(false)
-                val duration = System.currentTimeMillis() - downTime
+                removeCallbacks(startDragRunnable)
+                val duration = event.eventTime - downTime
                 val dist = hypot((event.x - downX).toDouble(), (event.y - downY).toDouble()).toFloat()
 
                 if (isDragging) {
@@ -253,19 +268,13 @@ class TrackpadView @JvmOverloads constructor(
                     val touchSlop = 16f * resources.displayMetrics.density
                     if (duration < 220 && dist < touchSlop) {
                         spawnRipple(event.x, event.y)
-                        val timeSinceLastTap = System.currentTimeMillis() - lastTapTime
-                        if (timeSinceLastTap < 280) {
-                            HapticHelper.doubleClick(context)
-                            listener?.onDoubleTap()
-                            lastTapTime = 0L
-                        } else {
-                            HapticHelper.click(context)
-                            listener?.onSingleTap()
-                            lastTapTime = System.currentTimeMillis()
-                        }
+                        HapticHelper.click(context)
+                        performClick()
+                        lastTapTime = event.eventTime
                     }
                 }
                 activeTouchPoints.clear()
+                isDragCandidate = false
                 invalidate()
             }
 
@@ -273,6 +282,8 @@ class TrackpadView @JvmOverloads constructor(
                 parent?.requestDisallowInterceptTouchEvent(false)
                 isScrolling = false
                 isDragging = false
+                isDragCandidate = false
+                removeCallbacks(startDragRunnable)
                 activeTouchPoints.clear()
                 invalidate()
             }
@@ -287,5 +298,15 @@ class TrackpadView @JvmOverloads constructor(
             activeTouchPoints.add(PointF(event.getX(i), event.getY(i)))
         }
         invalidate()
+    }
+
+    override fun performClick(): Boolean {
+        super.performClick()
+        listener?.onSingleTap()
+        return true
+    }
+
+    companion object {
+        private const val DRAG_HOLD_TIMEOUT_MS = 180L
     }
 }

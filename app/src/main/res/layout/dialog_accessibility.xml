@@ -10,7 +10,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="vivoDex uses Android Accessibility to send taps, scrolling, gestures, and text to your external display."
+        android:text="vivoDex uses Android Accessibility to send gestures to the selected display. When you use its keyboard, it reads only the focused text field and replaces that field’s text."
         android:textColor="@color/text_glass_secondary"
         android:textSize="14sp"
         android:lineSpacingExtra="3dp" />

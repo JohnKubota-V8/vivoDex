@@ -11,11 +11,14 @@ import android.hardware.display.DisplayManager
 import android.os.Handler
 import android.os.Looper
 import android.os.Bundle
+import android.graphics.Rect
+import android.util.Log
 import android.view.Display
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import android.view.accessibility.AccessibilityWindowInfo
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.animation.AccelerateDecelerateInterpolator
@@ -32,114 +35,133 @@ class RemoteGestureService : AccessibilityService() {
     private var blackoutWindowManager: WindowManager? = null
     private val blackoutAnimators = mutableListOf<Animator>()
     private var keepScreenAwake = false
-    private var editableNode: AccessibilityNodeInfo? = null
-    private var editablePackageName: String? = null
-    private var editableWindowId = -1
-    private var editableViewId: String? = null
+    private var gestureInFlight = false
+    private var pendingScroll: ScrollRequest? = null
+    private val displayBoundsCache = mutableMapOf<Int, Rect>()
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val autoHideCursorRunnable = Runnable {
         hideCursorForInactivity()
     }
-    private val autoDisableRunnable = Runnable { disableSelf() }
+    private val autoDisableRunnable = Runnable {
+        getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit().remove(AUTO_DISABLE_DEADLINE).apply()
+        disableSelf()
+    }
+    private val displayListener = object : DisplayManager.DisplayListener {
+        override fun onDisplayAdded(displayId: Int) = Unit
+
+        override fun onDisplayChanged(displayId: Int) {
+            displayBoundsCache.remove(displayId)
+        }
+
+        override fun onDisplayRemoved(displayId: Int) {
+            displayBoundsCache.remove(displayId)
+            if (cursorDisplayId == displayId) removeCursor()
+            if (pendingScroll?.displayId == displayId) pendingScroll = null
+        }
+    }
 
     override fun onServiceConnected() {
         instance = this
+        getSystemService(DisplayManager::class.java).registerDisplayListener(displayListener, mainHandler)
+        onConnectionChanged?.invoke(true)
+        reconcileAutoDisable()
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent) {
-        if (event.packageName?.toString() == packageName) return
-        val source = event.source ?: return
-        val editable = if (source.isEditable) source else source.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
-        if (editable?.isEditable == true) {
-            editableNode = AccessibilityNodeInfo.obtain(editable)
-            editablePackageName = event.packageName?.toString()
-            editableWindowId = editable.windowId
-            editableViewId = editable.viewIdResourceName
-        }
-    }
+    override fun onAccessibilityEvent(event: AccessibilityEvent) = Unit
 
     override fun onInterrupt() = Unit
 
     override fun onDestroy() {
         mainHandler.removeCallbacks(autoHideCursorRunnable)
         mainHandler.removeCallbacks(autoDisableRunnable)
+        getSystemService(DisplayManager::class.java).unregisterDisplayListener(displayListener)
         removeCursor()
         removeBlackout()
-        clearEditableTarget()
-        if (instance === this) instance = null
+        if (instance === this) {
+            instance = null
+            onConnectionChanged?.invoke(false)
+        }
         super.onDestroy()
     }
 
     fun tap(displayId: Int, x: Float, y: Float): Boolean {
         resetCursorInactivityTimer()
-        val display = getSystemService(DisplayManager::class.java).getDisplay(displayId) ?: return false
-        val clampedX = x.coerceIn(0f, display.mode.physicalWidth.toFloat())
-        val clampedY = y.coerceIn(0f, display.mode.physicalHeight.toFloat())
+        val bounds = displayBounds(displayId) ?: return false
+        val clampedX = x.coerceIn(0f, bounds.width().toFloat() - 1f)
+        val clampedY = y.coerceIn(0f, bounds.height().toFloat() - 1f)
         val path = Path().apply { moveTo(clampedX, clampedY) }
-        val gesture = GestureDescription.Builder()
+        return dispatch(GestureDescription.Builder()
             .setDisplayId(displayId)
             .addStroke(GestureDescription.StrokeDescription(path, 0, 50))
-            .build()
-        return dispatchGesture(gesture, null, null)
+            .build())
     }
 
     fun longPress(displayId: Int, x: Float, y: Float): Boolean {
         resetCursorInactivityTimer()
-        val display = getSystemService(DisplayManager::class.java).getDisplay(displayId) ?: return false
-        val clampedX = x.coerceIn(0f, display.mode.physicalWidth.toFloat())
-        val clampedY = y.coerceIn(0f, display.mode.physicalHeight.toFloat())
+        val bounds = displayBounds(displayId) ?: return false
+        val clampedX = x.coerceIn(0f, bounds.width().toFloat() - 1f)
+        val clampedY = y.coerceIn(0f, bounds.height().toFloat() - 1f)
         val path = Path().apply { moveTo(clampedX, clampedY) }
-        val gesture = GestureDescription.Builder()
+        return dispatch(GestureDescription.Builder()
             .setDisplayId(displayId)
             .addStroke(GestureDescription.StrokeDescription(path, 0, 600))
-            .build()
-        return dispatchGesture(gesture, null, null)
+            .build())
     }
 
     fun drag(displayId: Int, startX: Float, startY: Float, endX: Float, endY: Float, durationMs: Long = 250): Boolean {
         resetCursorInactivityTimer()
-        val display = getSystemService(DisplayManager::class.java).getDisplay(displayId) ?: return false
-        val clampedStartX = startX.coerceIn(0f, display.mode.physicalWidth.toFloat())
-        val clampedStartY = startY.coerceIn(0f, display.mode.physicalHeight.toFloat())
-        val clampedEndX = endX.coerceIn(0f, display.mode.physicalWidth.toFloat())
-        val clampedEndY = endY.coerceIn(0f, display.mode.physicalHeight.toFloat())
+        val bounds = displayBounds(displayId) ?: return false
+        val clampedStartX = startX.coerceIn(0f, bounds.width().toFloat() - 1f)
+        val clampedStartY = startY.coerceIn(0f, bounds.height().toFloat() - 1f)
+        val clampedEndX = endX.coerceIn(0f, bounds.width().toFloat() - 1f)
+        val clampedEndY = endY.coerceIn(0f, bounds.height().toFloat() - 1f)
         val path = Path().apply {
             moveTo(clampedStartX, clampedStartY)
             lineTo(clampedEndX, clampedEndY)
         }
-        val gesture = GestureDescription.Builder()
+        return dispatch(GestureDescription.Builder()
             .setDisplayId(displayId)
             .addStroke(GestureDescription.StrokeDescription(path, 0, durationMs))
-            .build()
-        return dispatchGesture(gesture, null, null)
+            .build())
     }
 
     fun scroll(displayId: Int, x: Float, y: Float, deltaX: Float, deltaY: Float): Boolean {
         resetCursorInactivityTimer()
-        val display = getSystemService(DisplayManager::class.java).getDisplay(displayId) ?: return false
-        val endX = (x + deltaX).coerceIn(0f, display.mode.physicalWidth.toFloat())
-        val endY = (y + deltaY).coerceIn(0f, display.mode.physicalHeight.toFloat())
-        if (kotlin.math.abs(endX - x) < 2f && kotlin.math.abs(endY - y) < 2f) return false
+        val bounds = displayBounds(displayId) ?: return false
+        val startX = x.coerceIn(0f, bounds.width().toFloat() - 1f)
+        val startY = y.coerceIn(0f, bounds.height().toFloat() - 1f)
+        val endX = (startX + deltaX).coerceIn(0f, bounds.width().toFloat() - 1f)
+        val endY = (startY + deltaY).coerceIn(0f, bounds.height().toFloat() - 1f)
+        if (kotlin.math.abs(endX - startX) < 2f && kotlin.math.abs(endY - startY) < 2f) return false
+
+        if (gestureInFlight) {
+            pendingScroll = pendingScroll?.takeIf { it.displayId == displayId }?.let { pending ->
+                pending.copy(
+                deltaX = pending.deltaX + deltaX,
+                deltaY = pending.deltaY + deltaY,
+                )
+            } ?: ScrollRequest(displayId, startX, startY, deltaX, deltaY)
+            return true
+        }
 
         val path = Path().apply {
-            moveTo(x, y)
+            moveTo(startX, startY)
             lineTo(endX, endY)
         }
-        val gesture = GestureDescription.Builder()
+        return dispatch(GestureDescription.Builder()
             .setDisplayId(displayId)
             .addStroke(GestureDescription.StrokeDescription(path, 0, 100))
-            .build()
-        return dispatchGesture(gesture, null, null)
+            .build())
     }
 
     fun pinch(displayId: Int, x: Float, y: Float, scale: Float): Boolean {
         resetCursorInactivityTimer()
-        val display = getSystemService(DisplayManager::class.java).getDisplay(displayId) ?: return false
+        val bounds = displayBounds(displayId) ?: return false
         if (scale <= 0f) return false
 
-        val width = display.mode.physicalWidth.toFloat()
-        val height = display.mode.physicalHeight.toFloat()
+        val width = bounds.width().toFloat()
+        val height = bounds.height().toFloat()
         val halfSpan = minOf(width, height) * 0.12f
         val endHalfSpan = halfSpan * scale
         val centerX = x.coerceIn(0f, width)
@@ -154,22 +176,22 @@ class RemoteGestureService : AccessibilityService() {
             moveTo(pointX(halfSpan, 1f), centerY)
             lineTo(pointX(endHalfSpan, 1f), centerY)
         }
-        val gesture = GestureDescription.Builder()
+        return dispatch(GestureDescription.Builder()
             .setDisplayId(displayId)
             .addStroke(GestureDescription.StrokeDescription(first, 0, 180))
             .addStroke(GestureDescription.StrokeDescription(second, 0, 180))
-            .build()
-        return dispatchGesture(gesture, null, null)
+            .build())
     }
 
     fun moveCursor(displayId: Int, x: Float, y: Float) {
         if (!cursorVisible) return
         resetCursorInactivityTimer()
         val display = getSystemService(DisplayManager::class.java).getDisplay(displayId) ?: return
+        val bounds = displayBounds(displayId) ?: return
         if (cursorDisplayId != displayId) removeCursor()
 
-        val displayContext = createDisplayContext(display)
-        val size = (28 * displayContext.resources.displayMetrics.density).toInt()
+        val windowContext = createWindowContext(display, WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY, null)
+        val size = (28 * windowContext.resources.displayMetrics.density).toInt()
         val params = WindowManager.LayoutParams(
             size,
             size,
@@ -177,27 +199,35 @@ class RemoteGestureService : AccessibilityService() {
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
             PixelFormat.TRANSLUCENT,
         ).apply {
-            gravity = Gravity.TOP or Gravity.START
-            this.x = x.toInt()
-            this.y = y.toInt()
+            gravity = Gravity.TOP or Gravity.LEFT
+            this.x = x.coerceIn(0f, bounds.width().toFloat() - 1f).toInt()
+            this.y = y.coerceIn(0f, bounds.height().toFloat() - 1f).toInt()
         }
 
         if (cursorView == null) {
-            val newCursor = ImageView(displayContext).apply {
+            val newCursor = ImageView(windowContext).apply {
                 setImageResource(R.drawable.ic_mouse_pointer)
             }
-            val windowManager = displayContext.getSystemService(WindowManager::class.java)
+            val windowManager = windowContext.getSystemService(WindowManager::class.java)
             try {
                 windowManager.addView(newCursor, params)
                 cursorView = newCursor
                 cursorWindowManager = windowManager
                 cursorDisplayId = displayId
-            } catch (_: WindowManager.BadTokenException) { }
+            } catch (error: WindowManager.BadTokenException) {
+                Log.w(TAG, "Could not add cursor to display $displayId", error)
+            } catch (error: WindowManager.InvalidDisplayException) {
+                Log.w(TAG, "Cursor display $displayId disappeared", error)
+            }
         } else {
             try {
                 cursorView?.visibility = View.VISIBLE
                 cursorWindowManager?.updateViewLayout(cursorView, params)
-            } catch (_: WindowManager.BadTokenException) {
+            } catch (error: WindowManager.BadTokenException) {
+                Log.w(TAG, "Could not update cursor on display $displayId", error)
+                removeCursor()
+            } catch (error: IllegalArgumentException) {
+                Log.w(TAG, "Cursor was detached before update", error)
                 removeCursor()
             }
         }
@@ -229,8 +259,6 @@ class RemoteGestureService : AccessibilityService() {
         return cursorVisible
     }
 
-    fun isCursorVisible(): Boolean = cursorVisible
-
     fun setKeepScreenAwake(enabled: Boolean) {
         keepScreenAwake = enabled
         val view = blackoutView ?: return
@@ -242,7 +270,9 @@ class RemoteGestureService : AccessibilityService() {
         }
         try {
             blackoutWindowManager?.updateViewLayout(view, params)
-        } catch (_: IllegalArgumentException) { }
+        } catch (error: IllegalArgumentException) {
+            Log.w(TAG, "Could not update blackout flags", error)
+        }
     }
 
     fun scheduleAutoDisable() {
@@ -256,60 +286,34 @@ class RemoteGestureService : AccessibilityService() {
 
     fun disableNow() {
         mainHandler.removeCallbacks(autoDisableRunnable)
+        getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit().remove(AUTO_DISABLE_DEADLINE).apply()
         disableSelf()
     }
 
-    fun hasEditableTarget(): Boolean = editableNode?.isEditable == true
+    fun hasEditableTarget(displayId: Int): Boolean = editableTarget(displayId) != null
 
-    fun editableTargetPackage(): String = editablePackageName ?: "external app"
+    fun editableTargetPackage(displayId: Int): String = editableTarget(displayId)?.packageName?.toString() ?: "external app"
 
-    fun setEditableText(text: CharSequence): Boolean {
-        val node = liveEditableNode() ?: return false
+    fun setEditableText(displayId: Int, text: CharSequence): Boolean {
+        val node = editableTarget(displayId) ?: return false
         val arguments = Bundle().apply {
             putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
         }
         return node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, arguments)
     }
 
-    private fun liveEditableNode(): AccessibilityNodeInfo? {
-        val root = windows.firstOrNull { it.id == editableWindowId }?.root ?: return editableNode
-        val focused = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
-        if (focused?.isEditable == true) return focused
-        val viewId = editableViewId ?: return editableNode
-        return findEditableNode(root, viewId) ?: editableNode
-    }
-
-    private fun findEditableNode(node: AccessibilityNodeInfo, viewId: String): AccessibilityNodeInfo? {
-        if (node.isEditable && node.viewIdResourceName == viewId) return node
-        repeat(node.childCount) { index ->
-            node.getChild(index)?.let { child ->
-                findEditableNode(child, viewId)?.let { return it }
-            }
-        }
-        return null
-    }
-
-    private fun clearEditableTarget() {
-        editableNode = null
-        editablePackageName = null
-        editableWindowId = -1
-        editableViewId = null
-    }
-
-    fun goBack(): Boolean = performGlobalAction(GLOBAL_ACTION_BACK)
-
-    fun goHome(): Boolean = performGlobalAction(GLOBAL_ACTION_HOME)
-
-    fun openRecents(): Boolean = performGlobalAction(GLOBAL_ACTION_RECENTS)
-
-    fun openNotifications(): Boolean = performGlobalAction(GLOBAL_ACTION_NOTIFICATIONS)
+    private fun editableTarget(displayId: Int): AccessibilityNodeInfo? =
+        windowsOnAllDisplays[displayId]?.asSequence()
+            ?.mapNotNull(AccessibilityWindowInfo::getRoot)
+            ?.mapNotNull { it.findFocus(AccessibilityNodeInfo.FOCUS_INPUT) }
+            ?.firstOrNull { it.isEditable }
 
     fun blackoutPhoneScreen(): Boolean {
         if (blackoutView != null) return true
         val display = getSystemService(DisplayManager::class.java).getDisplay(Display.DEFAULT_DISPLAY) ?: return false
-        val displayContext = createDisplayContext(display)
+        val windowContext = createWindowContext(display, WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY, null)
 
-        val frame = FrameLayout(displayContext).apply {
+        val frame = FrameLayout(windowContext).apply {
             setBackgroundColor(android.graphics.Color.BLACK)
             isClickable = true
             isFocusable = true
@@ -321,7 +325,7 @@ class RemoteGestureService : AccessibilityService() {
             }
         }
 
-        val hintText = TextView(displayContext).apply {
+        val hintText = TextView(windowContext).apply {
             text = "🌙 Phone Screen Dimmed\n(Anti-Burn Active)\n\nTap anywhere to wake"
             setTextColor(android.graphics.Color.WHITE)
             textSize = 14f
@@ -335,7 +339,7 @@ class RemoteGestureService : AccessibilityService() {
         frame.addView(hintText)
 
         // OLED Anti-Burn-in Drift Animators (Lissajous curves with prime period intervals)
-        val density = displayContext.resources.displayMetrics.density
+        val density = windowContext.resources.displayMetrics.density
         val driftX = 70f * density
         val driftY = 120f * density
 
@@ -358,16 +362,7 @@ class RemoteGestureService : AccessibilityService() {
             interpolator = AccelerateDecelerateInterpolator()
         }
 
-        blackoutAnimators.clear()
-        blackoutAnimators.add(animX)
-        blackoutAnimators.add(animY)
-        blackoutAnimators.add(animAlpha)
-
-        animX.start()
-        animY.start()
-        animAlpha.start()
-
-        val windowManager = displayContext.getSystemService(WindowManager::class.java)
+        val windowManager = windowContext.getSystemService(WindowManager::class.java)
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
@@ -385,8 +380,14 @@ class RemoteGestureService : AccessibilityService() {
             windowManager.addView(frame, params)
             blackoutView = frame
             blackoutWindowManager = windowManager
+            blackoutAnimators += listOf(animX, animY, animAlpha)
+            blackoutAnimators.forEach(Animator::start)
             true
-        } catch (_: WindowManager.BadTokenException) {
+        } catch (error: WindowManager.BadTokenException) {
+            Log.w(TAG, "Could not add blackout overlay", error)
+            false
+        } catch (error: WindowManager.InvalidDisplayException) {
+            Log.w(TAG, "Phone display disappeared while adding blackout", error)
             false
         }
     }
@@ -396,7 +397,9 @@ class RemoteGestureService : AccessibilityService() {
         cursorView?.let {
             try {
                 cursorWindowManager?.removeView(it)
-            } catch (_: IllegalArgumentException) { }
+            } catch (error: IllegalArgumentException) {
+                Log.w(TAG, "Cursor was already removed", error)
+            }
         }
         cursorView = null
         cursorWindowManager = null
@@ -409,17 +412,71 @@ class RemoteGestureService : AccessibilityService() {
         blackoutView?.let { view ->
             try {
                 blackoutWindowManager?.removeView(view)
-            } catch (_: IllegalArgumentException) { }
+            } catch (error: IllegalArgumentException) {
+                Log.w(TAG, "Blackout was already removed", error)
+            }
         }
         blackoutView = null
         blackoutWindowManager = null
     }
 
     companion object {
+        private const val TAG = "VivoDex"
+        private const val PREFS_NAME = "vivodex_prefs"
+        private const val AUTO_DISABLE_DEADLINE = "auto_disable_deadline"
         const val CURSOR_AUTO_HIDE_DELAY_MS = 10_000L
         const val AUTO_DISABLE_DELAY_MS = 10 * 60 * 1000L
 
         var instance: RemoteGestureService? = null
             private set
+        var onConnectionChanged: ((Boolean) -> Unit)? = null
+    }
+
+    private data class ScrollRequest(
+        val displayId: Int,
+        val x: Float,
+        val y: Float,
+        val deltaX: Float,
+        val deltaY: Float,
+    )
+
+    fun displayBounds(displayId: Int): Rect? {
+        displayBoundsCache[displayId]?.let { return Rect(it) }
+        val display = getSystemService(DisplayManager::class.java).getDisplay(displayId) ?: return null
+        val bounds = createWindowContext(display, WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY, null)
+            .getSystemService(WindowManager::class.java)
+            .currentWindowMetrics
+            .bounds
+        displayBoundsCache[displayId] = Rect(bounds)
+        return bounds
+    }
+
+    private fun dispatch(gesture: GestureDescription): Boolean {
+        if (gestureInFlight) return false
+        gestureInFlight = true
+        val accepted = dispatchGesture(gesture, object : GestureResultCallback() {
+            override fun onCompleted(gestureDescription: GestureDescription) = completeGesture()
+            override fun onCancelled(gestureDescription: GestureDescription) = completeGesture()
+        }, mainHandler)
+        if (!accepted) gestureInFlight = false
+        return accepted
+    }
+
+    private fun completeGesture() {
+        gestureInFlight = false
+        pendingScroll?.let { request ->
+            pendingScroll = null
+            scroll(request.displayId, request.x, request.y, request.deltaX, request.deltaY)
+        }
+    }
+
+    private fun reconcileAutoDisable() {
+        val deadline = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).getLong(AUTO_DISABLE_DEADLINE, 0L)
+        if (deadline == 0L) return
+        val remaining = deadline - System.currentTimeMillis()
+        if (remaining <= 0L) disableNow() else {
+            mainHandler.removeCallbacks(autoDisableRunnable)
+            mainHandler.postDelayed(autoDisableRunnable, remaining)
+        }
     }
 }

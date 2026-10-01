@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">vivoDex</string>
-    <string name="accessibility_description">Sends test taps from VivoDex to the selected display.</string>
+    <string name="accessibility_description">Sends gestures to the selected display and reads the focused text field only when you use VivoDex keyboard input.</string>
 </resources>

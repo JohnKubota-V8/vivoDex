@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -70,7 +69,7 @@
                                 android:layout_height="32dp"
                                 android:src="@drawable/ic_display"
                                 app:tint="@color/white"
-                                android:contentDescription="Display Icon" />
+                                android:importantForAccessibility="no" />
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -166,7 +165,7 @@
                                 android:layout_height="26dp"
                                 android:src="@drawable/ic_warning"
                                 app:tint="?attr/colorError"
-                                android:contentDescription="Accessibility status" />
+                                android:importantForAccessibility="no" />
 
                             <TextView
                                 android:id="@+id/accessibility_status"
@@ -194,7 +193,7 @@
                             android:layout_height="48dp"
                             android:layout_marginTop="14dp"
                             android:text="Enable Accessibility Service"
-                            android:textColor="@color/white"
+                            android:textColor="@color/button_text_glass"
                             android:background="@drawable/bg_glass_button"
                             app:backgroundTint="@null" />
                     </LinearLayout>
@@ -221,7 +220,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Favorite Apps Launcher"
-                            android:textColor="@color/text_glass_primary"
+                            android:textColor="@color/button_text_glass"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
                             android:textStyle="bold" />
 
@@ -346,7 +345,7 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_speed"
                     android:layout_width="0dp"
-                    android:layout_height="38dp"
+                    android:layout_height="48dp"
                     android:layout_weight="1.25"
                     android:text="1.5x"
                     android:textColor="@color/white"
@@ -364,7 +363,7 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/toggle_cursor"
                     android:layout_width="0dp"
-                    android:layout_height="38dp"
+                    android:layout_height="48dp"
                     android:layout_weight="0.75"
                     android:layout_marginStart="6dp"
                     android:insetTop="0dp"
@@ -382,7 +381,7 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/blackout_phone_screen"
                     android:layout_width="0dp"
-                    android:layout_height="38dp"
+                    android:layout_height="48dp"
                     android:layout_weight="0.75"
                     android:layout_marginStart="6dp"
                     android:insetTop="0dp"
@@ -399,7 +398,7 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/more_controls"
                     android:layout_width="0dp"
-                    android:layout_height="38dp"
+                    android:layout_height="48dp"
                     android:layout_weight="1.1"
                     android:layout_marginStart="6dp"
                     android:insetTop="0dp"
@@ -429,7 +428,8 @@
                     <com.example.vivodex.TrackpadView
                         android:id="@+id/trackpad"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
+                        android:layout_height="match_parent"
+                        android:contentDescription="Trackpad. Swipe one finger to move the pointer. Tap once to click. Use two fingers to scroll or tap with two fingers for a context menu." />
 
                     <!-- Centered watermark instructions -->
                     <LinearLayout
@@ -438,7 +438,8 @@
                         android:layout_gravity="center"
                         android:gravity="center"
                         android:orientation="vertical"
-                        android:alpha="0.20">
+                        android:alpha="0.20"
+                        android:importantForAccessibility="no">
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -475,7 +476,8 @@
                     android:layout_height="wrap_content"
                     android:text="Zoom"
                     android:textColor="@color/text_glass_primary"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:labelFor="@id/zoom_slider" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -483,7 +485,8 @@
                     android:layout_marginStart="12dp"
                     android:text="-"
                     android:textColor="@color/text_glass_secondary"
-                    android:textSize="20sp" />
+                    android:textSize="20sp"
+                    android:importantForAccessibility="no" />
 
                 <com.google.android.material.slider.Slider
                     android:id="@+id/zoom_slider"
@@ -501,7 +504,8 @@
                     android:layout_height="wrap_content"
                     android:text="+"
                     android:textColor="@color/text_glass_secondary"
-                    android:textSize="20sp" />
+                    android:textSize="20sp"
+                    android:importantForAccessibility="no" />
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
@@ -525,7 +529,7 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/scroll_up"
                     android:layout_width="0dp"
-                    android:layout_height="42dp"
+                    android:layout_height="48dp"
                     android:layout_weight="1"
                     android:padding="0dp"
                     android:insetTop="0dp"
@@ -542,7 +546,7 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/scroll_down"
                     android:layout_width="0dp"
-                    android:layout_height="42dp"
+                    android:layout_height="48dp"
                     android:layout_weight="1"
                     android:layout_marginStart="6dp"
                     android:padding="0dp"
@@ -560,7 +564,7 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/scroll_left"
                     android:layout_width="0dp"
-                    android:layout_height="42dp"
+                    android:layout_height="48dp"
                     android:layout_weight="1"
                     android:layout_marginStart="6dp"
                     android:padding="0dp"
@@ -578,7 +582,7 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/scroll_right"
                     android:layout_width="0dp"
-                    android:layout_height="42dp"
+                    android:layout_height="48dp"
                     android:layout_weight="1"
                     android:layout_marginStart="6dp"
                     android:padding="0dp"
