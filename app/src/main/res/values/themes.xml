@@ -1,21 +1,21 @@
 <resources>
-    <!-- Base application theme configured for Control Deck. -->
+    <!-- Base application theme configured for monochrome Liquid Glass. -->
     <style name="Base.Theme.VivoDex" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/deck_accent</item>
-        <item name="colorSecondary">@color/deck_success</item>
+        <item name="colorSecondary">@color/text_glass_secondary</item>
         <item name="colorSecondaryContainer">@color/deck_accent_dim</item>
         <item name="colorOnSecondaryContainer">@color/text_glass_primary</item>
         <item name="android:statusBarColor">@color/canvas_dark</item>
         <item name="android:navigationBarColor">@color/canvas_dark</item>
         <item name="android:windowBackground">@color/canvas_dark</item>
 
-        <!-- Control Deck dialog theme -->
+        <!-- Compact glass dialog theme -->
         <item name="materialAlertDialogTheme">@style/ThemeOverlay.VivoDex.Dialog</item>
         <item name="alertDialogTheme">@style/ThemeOverlay.VivoDex.Dialog</item>
     </style>
 
     <style name="ThemeOverlay.VivoDex.Dialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
-        <item name="colorSurface">@color/deck_surface_raised</item>
+        <item name="colorSurface">@color/canvas_surface</item>
         <item name="colorOnSurface">@color/text_glass_primary</item>
         <item name="colorOnSurfaceVariant">@color/text_glass_secondary</item>
         <item name="colorPrimary">@color/deck_accent</item>
@@ -31,7 +31,7 @@
 
     <style name="ShapeAppearanceOverlay.VivoDex.Dialog" parent="">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">16dp</item>
+        <item name="cornerSize">12dp</item>
     </style>
 
     <style name="Widget.VivoDex.Dialog.Title" parent="MaterialAlertDialog.Material3.Title.Text">
@@ -41,7 +41,7 @@
     </style>
 
     <style name="Widget.VivoDex.Dialog.Button.Positive" parent="Widget.Material3.Button.TextButton.Dialog">
-        <item name="android:textColor">@color/deck_accent</item>
+        <item name="android:textColor">@color/text_glass_primary</item>
         <item name="android:textStyle">bold</item>
         <item name="rippleColor">#25FFFFFF</item>
     </style>

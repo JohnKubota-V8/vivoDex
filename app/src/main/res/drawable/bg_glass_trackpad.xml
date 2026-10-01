@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="@color/deck_surface_raised" />
-    <corners android:radius="14dp" />
+    <gradient
+        android:angle="315"
+        android:startColor="#1CFFFFFF"
+        android:centerColor="#0FFFFFFF"
+        android:endColor="#07000000" />
+    <corners android:radius="10dp" />
     <stroke
         android:width="1dp"
-        android:color="@color/deck_stroke_strong" />
+        android:color="#4AFFFFFF" />
 </shape>

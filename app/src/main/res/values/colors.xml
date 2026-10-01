@@ -3,37 +3,37 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- Control Deck palette -->
-    <color name="canvas_dark">#FF06080D</color>
-    <color name="canvas_surface">#FF0D131B</color>
-    <color name="deck_surface_raised">#FF141C27</color>
-    <color name="deck_surface_selected">#FF172B36</color>
-    <color name="deck_stroke">#FF2A394A</color>
-    <color name="deck_stroke_strong">#FF50647B</color>
-    <color name="deck_accent">#FF5FD7F5</color>
-    <color name="deck_accent_dim">#245FD7F5</color>
-    <color name="deck_success">#FF64D99B</color>
-    <color name="deck_warning">#FFF5B95F</color>
-    <color name="deck_danger">#FFFF747C</color>
+    <!-- Monochrome Liquid Glass palette -->
+    <color name="canvas_dark">#FF050507</color>
+    <color name="canvas_surface">#FF101014</color>
+    <color name="deck_surface_raised">#FF17171C</color>
+    <color name="deck_surface_selected">#FF25252B</color>
+    <color name="deck_stroke">#32FFFFFF</color>
+    <color name="deck_stroke_strong">#66FFFFFF</color>
+    <color name="deck_accent">#FFF7F7F8</color>
+    <color name="deck_accent_dim">#20FFFFFF</color>
+    <color name="deck_success">#FFF7F7F8</color>
+    <color name="deck_warning">#FF9A9AA4</color>
+    <color name="deck_danger">#FFFF737D</color>
 
     <!-- Glass Layers (Monochrome Alphas) -->
-    <color name="glass_card_bg">@color/canvas_surface</color>
-    <color name="glass_card_bg_active">@color/deck_surface_selected</color>
+    <color name="glass_card_bg">#16FFFFFF</color>
+    <color name="glass_card_bg_active">#26FFFFFF</color>
     <color name="glass_stroke">@color/deck_stroke</color>
     <color name="glass_stroke_bright">@color/deck_stroke_strong</color>
-    <color name="glass_trackpad_bg">@color/deck_surface_raised</color>
-    <color name="glass_button_bg">@color/deck_surface_raised</color>
+    <color name="glass_trackpad_bg">#0DFFFFFF</color>
+    <color name="glass_button_bg">#14FFFFFF</color>
 
     <!-- Monochrome Accents (White & Grays) -->
     <color name="liquid_cyan">@color/deck_accent</color>
-    <color name="liquid_cyan_dim">#995FD7F5</color>
-    <color name="liquid_cyan_glow">#245FD7F5</color>
+    <color name="liquid_cyan_dim">#99FFFFFF</color>
+    <color name="liquid_cyan_glow">#24FFFFFF</color>
     <color name="liquid_violet">#E4E4E7</color>
     <color name="liquid_violet_dim">#80E4E4E7</color>
     <color name="liquid_violet_glow">#1EFFFFFF</color>
 
     <!-- Text colors -->
-    <color name="text_glass_primary">#FFF2F6FB</color>
-    <color name="text_glass_secondary">#FFB5C0CE</color>
-    <color name="text_glass_muted">#FF7F8A99</color>
+    <color name="text_glass_primary">#FFF7F7F8</color>
+    <color name="text_glass_secondary">#FFB8B8C0</color>
+    <color name="text_glass_muted">#FF7B7B85</color>
 </resources>

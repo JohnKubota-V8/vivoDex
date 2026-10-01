@@ -328,10 +328,9 @@ class RemoteGestureService : AccessibilityService() {
         }
 
         val hintText = TextView(windowContext).apply {
-            text = "DISPLAY CONTROL ACTIVE\nPHONE PANEL DIMMED\nANTI-BURN PROTECTION ON\n\nTAP ANYWHERE TO WAKE"
-            setTextColor(getColor(R.color.deck_accent))
+            text = "Phone screen dimmed\nAnti-burn protection is active\n\nTap anywhere to wake"
+            setTextColor(getColor(R.color.text_glass_primary))
             textSize = 13f
-            typeface = android.graphics.Typeface.MONOSPACE
             setBackgroundResource(R.drawable.bg_glass_alert)
             setPadding((20 * windowContext.resources.displayMetrics.density).toInt(), (16 * windowContext.resources.displayMetrics.density).toInt(), (20 * windowContext.resources.displayMetrics.density).toInt(), (16 * windowContext.resources.displayMetrics.density).toInt())
             gravity = Gravity.CENTER

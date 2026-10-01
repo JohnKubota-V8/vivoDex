@@ -8,31 +8,38 @@
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="?attr/actionBarSize"
         android:background="@android:color/transparent"
-        app:title="VIVODEX"
-        app:titleCentered="false"
-        app:titleTextColor="@color/text_glass_primary"
+        app:contentInsetStart="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:subtitle="@string/control_deck"
-        app:subtitleTextColor="@color/text_glass_secondary"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:subtitleTextColor="@color/text_glass_muted"
+        app:title="vivoDex"
+        app:titleTextColor="@color/text_glass_primary" />
 
     <FrameLayout
         android:id="@+id/content_container"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
-        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_container">
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_container"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar">
 
-        <!-- ==================== DISPLAY & APPS PAGE ==================== -->
         <ScrollView
             android:id="@+id/display_page"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scrollbars="none"
             android:clipToPadding="false"
-            android:padding="16dp">
+            android:fillViewport="true"
+            android:paddingStart="14dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="20dp"
+            android:scrollbars="none">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -42,90 +49,101 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:text="@string/output_link"
-                    android:textColor="@color/deck_accent"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.12" />
+                    android:text="Workspace"
+                    android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                    android:textColor="@color/text_glass_primary"
+                    android:textStyle="bold" />
 
-                <!-- Display Connection Card -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="14dp"
+                    android:text="Connect a display, choose a target, then launch."
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="@color/text_glass_secondary" />
+
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/card_display_status"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
                     android:background="@drawable/bg_glass_card"
-                    app:cardBackgroundColor="@android:color/transparent"
+                    app:cardBackgroundColor="@color/glass_card_bg"
+                    app:cardCornerRadius="10dp"
                     app:cardElevation="0dp"
-                    app:strokeWidth="0dp"
-                    app:cardCornerRadius="14dp">
+                    app:strokeColor="@color/glass_stroke"
+                    app:strokeWidth="1dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="18dp">
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="EXTERNAL DISPLAY"
+                            android:textColor="@color/text_glass_muted"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:letterSpacing="0.1" />
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
+                            android:layout_marginTop="10dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
 
                             <ImageView
                                 android:id="@+id/display_icon"
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
+                                android:layout_width="30dp"
+                                android:layout_height="30dp"
+                                android:importantForAccessibility="no"
                                 android:src="@drawable/ic_display"
-                                app:tint="@color/white"
-                                android:importantForAccessibility="no" />
+                                app:tint="@color/text_glass_primary" />
 
-                            <LinearLayout
+                            <TextView
+                                android:id="@+id/display_status"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
                                 android:layout_weight="1"
-                                android:orientation="vertical"
-                                android:layout_marginStart="14dp">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="External Display"
-                                    android:textColor="@color/text_glass_primary"
-                                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                                    android:textStyle="bold" />
-
-                                <TextView
-                                    android:id="@+id/display_status"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="2dp"
-                                    android:text="No external display connected"
-                                    android:textColor="@color/text_glass_secondary"
-                                    android:textAppearance="?attr/textAppearanceBodyMedium" />
-                            </LinearLayout>
+                                android:text="No external display connected"
+                                android:textAppearance="?attr/textAppearanceBodyMedium"
+                                android:textColor="@color/text_glass_primary" />
                         </LinearLayout>
 
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
-                            android:background="@color/glass_stroke"
                             android:layout_marginTop="14dp"
-                            android:layout_marginBottom="14dp" />
+                            android:layout_marginBottom="14dp"
+                            android:background="@color/glass_stroke" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="CURRENT TARGET"
+                            android:textColor="@color/text_glass_muted"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:letterSpacing="0.1" />
 
                         <TextView
                             android:id="@+id/selected_display"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="7dp"
                             android:text="Target: No target display selected"
+                            android:textAppearance="?attr/textAppearanceTitleSmall"
                             android:textColor="@color/text_glass_primary"
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
                             android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/display_details"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:textAppearance="?attr/textAppearanceBodySmall"
@@ -136,74 +154,64 @@
                             android:layout_width="match_parent"
                             android:layout_height="48dp"
                             android:layout_marginTop="14dp"
-                            android:text="Switch Target Display"
-                            android:textColor="@color/text_glass_primary"
                             android:background="@drawable/bg_glass_button"
+                            android:text="Switch Display"
+                            android:textColor="@color/text_glass_primary"
                             app:backgroundTint="@null"
                             app:icon="@drawable/ic_display"
-                            app:iconTint="@color/white" />
+                            app:iconTint="@color/text_glass_primary" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:text="@string/input_bridge"
-                    android:textColor="@color/deck_accent"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.12" />
-
-                <!-- Accessibility Status Card -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/card_accessibility"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="14dp"
+                    android:layout_marginTop="10dp"
                     android:background="@drawable/bg_glass_card"
-                    app:cardBackgroundColor="@android:color/transparent"
+                    app:cardBackgroundColor="@color/glass_card_bg"
+                    app:cardCornerRadius="10dp"
                     app:cardElevation="0dp"
-                    app:strokeWidth="0dp"
-                    app:cardCornerRadius="14dp">
+                    app:strokeColor="@color/glass_stroke"
+                    app:strokeWidth="1dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="18dp">
+                        android:padding="16dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
 
                             <ImageView
                                 android:id="@+id/accessibility_icon"
-                                android:layout_width="26dp"
-                                android:layout_height="26dp"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:importantForAccessibility="no"
                                 android:src="@drawable/ic_warning"
-                                app:tint="?attr/colorError"
-                                android:importantForAccessibility="no" />
+                                app:tint="@color/text_glass_secondary" />
 
                             <TextView
                                 android:id="@+id/accessibility_status"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
                                 android:layout_weight="1"
-                                android:layout_marginStart="14dp"
                                 android:text="Accessibility Service: Disabled"
-                                android:textColor="@color/text_glass_primary"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
+                                android:textColor="@color/text_glass_primary"
                                 android:textStyle="bold" />
                         </LinearLayout>
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
-                            android:text="Required to draw virtual cursor and send mouse clicks to secondary display."
+                            android:layout_marginTop="7dp"
+                            android:text="Needed for the cursor, clicks and gestures on the target display."
                             android:textAppearance="?attr/textAppearanceBodySmall"
                             android:textColor="@color/text_glass_secondary" />
 
@@ -211,61 +219,78 @@
                             android:id="@+id/open_accessibility_settings"
                             android:layout_width="match_parent"
                             android:layout_height="48dp"
-                            android:layout_marginTop="14dp"
-                            android:text="Enable Accessibility Service"
-                            android:textColor="@color/button_text_glass"
+                            android:layout_marginTop="12dp"
                             android:background="@drawable/bg_glass_button"
+                            android:text="Enable Accessibility"
+                            android:textColor="@color/button_text_glass"
                             app:backgroundTint="@null" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="8dp"
-                    android:text="@string/app_launch"
-                    android:textColor="@color/deck_accent"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.12" />
-
-                <!-- Favorite Apps Launcher Card -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginTop="10dp"
                     android:background="@drawable/bg_glass_card"
-                    app:cardBackgroundColor="@android:color/transparent"
+                    app:cardBackgroundColor="@color/glass_card_bg"
+                    app:cardCornerRadius="10dp"
                     app:cardElevation="0dp"
-                    app:strokeWidth="0dp"
-                    app:cardCornerRadius="14dp">
+                    app:strokeColor="@color/glass_stroke"
+                    app:strokeWidth="1dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="18dp">
+                        android:padding="16dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Favorite Apps Launcher"
-                            android:textColor="@color/button_text_glass"
-                            android:textAppearance="?attr/textAppearanceTitleMedium"
-                            android:textStyle="bold" />
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="Select a favorite, then choose where to open it."
-                            android:textAppearance="?attr/textAppearanceBodySmall"
-                            android:textColor="@color/text_glass_secondary" />
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Apps"
+                                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                                    android:textColor="@color/text_glass_primary"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="Select a favorite, then choose where to open it."
+                                    android:textAppearance="?attr/textAppearanceBodySmall"
+                                    android:textColor="@color/text_glass_secondary" />
+                            </LinearLayout>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/select_app"
+                                android:layout_width="wrap_content"
+                                android:layout_height="48dp"
+                                android:layout_marginStart="10dp"
+                                android:background="@drawable/bg_glass_button"
+                                android:text="Add"
+                                android:textColor="@color/text_glass_primary"
+                                app:backgroundTint="@null"
+                                app:icon="@drawable/ic_add"
+                                app:iconTint="@color/text_glass_primary" />
+                        </LinearLayout>
 
                         <HorizontalScrollView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="14dp"
+                            android:layout_marginTop="16dp"
+                            android:clipToPadding="false"
                             android:scrollbars="none">
 
                             <LinearLayout
@@ -276,399 +301,62 @@
                                 android:orientation="horizontal" />
                         </HorizontalScrollView>
 
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/launch_app"
+                            android:layout_width="match_parent"
+                            android:layout_height="50dp"
+                            android:layout_marginTop="16dp"
+                            android:background="@drawable/bg_glass_button_primary"
+                            android:text="Launch Selected App"
+                            android:textColor="@color/text_glass_primary"
+                            android:textStyle="bold"
+                            app:backgroundTint="@null"
+                            app:icon="@drawable/ic_display"
+                            app:iconTint="@color/text_glass_primary" />
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="16dp"
+                            android:layout_marginTop="8dp"
                             android:orientation="horizontal">
 
                             <com.google.android.material.button.MaterialButton
-                                android:id="@+id/select_app"
+                                android:id="@+id/launch_on_phone"
                                 android:layout_width="0dp"
                                 android:layout_height="48dp"
                                 android:layout_weight="1"
-                                android:text="Add App"
-                                android:textColor="@color/text_glass_primary"
                                 android:background="@drawable/bg_glass_button"
-                                app:backgroundTint="@null"
-                                app:icon="@drawable/ic_add"
-                                app:iconTint="@color/white" />
+                                android:text="Open on Phone"
+                                android:textColor="@color/text_glass_primary"
+                                app:backgroundTint="@null" />
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/remove_favorite"
                                 android:layout_width="wrap_content"
                                 android:layout_height="48dp"
                                 android:layout_marginStart="8dp"
-                                android:text="Remove"
-                                android:visibility="gone"
-                                android:textColor="@color/deck_danger"
                                 android:background="@drawable/bg_glass_button"
+                                android:text="Remove"
+                                android:textColor="@color/deck_danger"
+                                android:visibility="gone"
                                 app:backgroundTint="@null" />
                         </LinearLayout>
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/launch_app"
-                            android:layout_width="match_parent"
-                            android:layout_height="50dp"
-                            android:layout_marginTop="10dp"
-                            android:text="Launch Selected App"
-                            android:textColor="@color/white"
-                            android:textStyle="bold"
-                            android:background="@drawable/bg_glass_button_primary"
-                            app:backgroundTint="@null"
-                            app:icon="@drawable/ic_display"
-                            app:iconTint="@color/white" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/launch_on_phone"
-                            android:layout_width="match_parent"
-                            android:layout_height="48dp"
-                            android:layout_marginTop="8dp"
-                            android:text="Open Selected App on Phone"
-                            android:textColor="@color/text_glass_primary"
-                            android:background="@drawable/bg_glass_button"
-                            app:backgroundTint="@null" />
-
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
         </ScrollView>
 
-        <!-- ==================== TOUCHPAD PAGE (OBSIDIAN DARK FULL SCREEN) ==================== -->
-        <LinearLayout
-            android:id="@+id/touchpad_page"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:visibility="gone"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp">
-
-            <!-- Touchpad Controls Bar (Status & Quick Glass Actions) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:id="@+id/trackpad_status"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Touchpad"
-                    android:textColor="@color/text_glass_primary"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textStyle="bold"
-                    android:ellipsize="end"
-                    android:maxLines="1" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                <!-- Speed Toggle Chip -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_speed"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1.25"
-                    android:text="1.5x"
-                    android:textColor="@color/white"
-                    android:background="@drawable/bg_glass_button"
-                    app:backgroundTint="@null"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
-                    app:icon="@drawable/ic_speed"
-                    app:iconTint="@color/white"
-                    app:iconSize="16dp" />
-
-                <!-- Toggle Cursor Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/toggle_cursor"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="0.75"
-                    android:layout_marginStart="6dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:padding="0dp"
-                    android:background="@drawable/bg_glass_button"
-                    app:backgroundTint="@null"
-                    app:icon="@drawable/ic_cursor_toggle"
-                    app:iconTint="@color/white"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    android:contentDescription="Toggle Cursor" />
-
-                <!-- Blackout / Dim Phone Screen Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/blackout_phone_screen"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="0.75"
-                    android:layout_marginStart="6dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:padding="0dp"
-                    android:background="@drawable/bg_glass_button"
-                    app:backgroundTint="@null"
-                    app:icon="@drawable/ic_brightness_dim"
-                    app:iconTint="@color/white"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    android:contentDescription="Dim Screen" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/more_controls"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1.1"
-                    android:layout_marginStart="6dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:text="More"
-                    android:textColor="@color/white"
-                    android:background="@drawable/bg_glass_button"
-                    app:backgroundTint="@null" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- Expansive Full-Screen Obsidian Glass Trackpad Surface -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_glass_trackpad"
-                app:cardBackgroundColor="@android:color/transparent"
-                app:cardElevation="0dp"
-                app:strokeWidth="0dp"
-                    app:cardCornerRadius="14dp">
-
-                <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-                    <com.example.vivodex.TrackpadView
-                        android:id="@+id/trackpad"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:contentDescription="@string/trackpad_description" />
-
-                    <!-- Centered watermark instructions -->
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:alpha="0.20"
-                        android:importantForAccessibility="no">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="CONTROL SURFACE"
-                            android:textAppearance="?attr/textAppearanceTitleMedium"
-                            android:textStyle="bold"
-                            android:letterSpacing="0.25"
-                            android:textColor="@color/white" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:text="1 FINGER: MOVE + TAP  /  2 FINGERS: SCROLL + CONTEXT"
-                            android:textAppearance="?attr/textAppearanceLabelSmall"
-                            android:textColor="@color/text_glass_secondary" />
-            </LinearLayout>
-
-        </FrameLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <LinearLayout
-                android:id="@+id/zoom_controls"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Zoom"
-                    android:textColor="@color/text_glass_primary"
-                    android:textStyle="bold"
-                    android:labelFor="@id/zoom_slider" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="-"
-                    android:textColor="@color/text_glass_secondary"
-                    android:textSize="20sp"
-                    android:importantForAccessibility="no" />
-
-                <com.google.android.material.slider.Slider
-                    android:id="@+id/zoom_slider"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginHorizontal="8dp"
-                    android:value="1.0"
-                    android:valueFrom="0.5"
-                    android:valueTo="2.0"
-                    android:stepSize="0.1" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="+"
-                    android:textColor="@color/text_glass_secondary"
-                    android:textSize="20sp"
-                    android:importantForAccessibility="no" />
-            </LinearLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/open_keyboard"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="8dp"
-                android:text="Keyboard for External App"
-                android:textColor="@color/text_glass_primary"
-                android:background="@drawable/bg_glass_button"
-                app:backgroundTint="@null" />
-
-            <!-- Scroll Gestures Bar (Icon-Only Glass Buttons: Up, Down, Left, Right) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="horizontal"
-                android:gravity="center">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/scroll_up"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:padding="0dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:background="@drawable/bg_glass_button"
-                    app:backgroundTint="@null"
-                    app:icon="@drawable/ic_arrow_up"
-                    app:iconTint="@color/white"
-                    app:iconSize="20dp"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    android:contentDescription="Scroll Up" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/scroll_down"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:layout_marginStart="6dp"
-                    android:padding="0dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:background="@drawable/bg_glass_button"
-                    app:backgroundTint="@null"
-                    app:icon="@drawable/ic_arrow_down"
-                    app:iconTint="@color/white"
-                    app:iconSize="20dp"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    android:contentDescription="Scroll Down" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/scroll_left"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:layout_marginStart="6dp"
-                    android:padding="0dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:background="@drawable/bg_glass_button"
-                    app:backgroundTint="@null"
-                    app:icon="@drawable/ic_arrow_back"
-                    app:iconTint="@color/white"
-                    app:iconSize="20dp"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    android:contentDescription="Scroll Left" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/scroll_right"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:layout_marginStart="6dp"
-                    android:padding="0dp"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:background="@drawable/bg_glass_button"
-                    app:backgroundTint="@null"
-                    app:icon="@drawable/ic_arrow_forward"
-                    app:iconTint="@color/white"
-                    app:iconSize="20dp"
-                    app:iconGravity="textStart"
-                    app:iconPadding="0dp"
-                    android:contentDescription="Scroll Right" />
-            </LinearLayout>
-
-            <!-- Physical Glass Mouse Buttons (Left Click & Right Click) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="horizontal">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_mouse_left"
-                    android:layout_width="0dp"
-                    android:layout_height="52dp"
-                    android:layout_weight="3"
-                    android:text="Left Click"
-                    android:textColor="@color/white"
-                    android:textStyle="bold"
-                    android:background="@drawable/bg_glass_button_primary"
-                    app:backgroundTint="@null"
-                    app:icon="@drawable/ic_touchpad"
-                    app:iconTint="@color/white" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btn_mouse_right"
-                    android:layout_width="0dp"
-                    android:layout_height="52dp"
-                    android:layout_weight="2"
-                    android:layout_marginStart="8dp"
-                    android:text="Right Click"
-                    android:textColor="@color/text_glass_primary"
-                    android:background="@drawable/bg_glass_button"
-                    app:backgroundTint="@null" />
-            </LinearLayout>
-        </LinearLayout>
-
+        <include layout="@layout/page_touchpad" />
         <include layout="@layout/page_settings" />
     </FrameLayout>
 
-    <!-- Bottom Navigation (Frosted Glass Style) -->
     <FrameLayout
         android:id="@+id/bottom_navigation_container"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="8dp"
         android:background="@drawable/bg_glass_card"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -688,9 +376,8 @@
             android:background="@android:color/transparent"
             app:itemActiveIndicatorStyle="@style/Widget.VivoDex.BottomNavigation.ActiveIndicator"
             app:itemIconTint="@color/nav_item_color"
-            app:itemTextColor="@color/nav_item_color"
             app:itemRippleColor="@color/deck_accent_dim"
+            app:itemTextColor="@color/nav_item_color"
             app:menu="@menu/bottom_nav_menu" />
     </FrameLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

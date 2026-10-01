@@ -831,11 +831,11 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
 
             val card = com.google.android.material.card.MaterialCardView(this).apply {
                 layoutParams = LinearLayout.LayoutParams((60 * density).toInt(), (60 * density).toInt())
-                radius = 10 * density
+                radius = 8 * density
                 cardElevation = 0f
                 strokeWidth = if (isSelected) (2f * density).toInt() else (1 * density).toInt()
-                strokeColor = ContextCompat.getColor(this@MainActivity, if (isSelected) R.color.deck_accent else R.color.deck_stroke)
-                setCardBackgroundColor(ContextCompat.getColor(this@MainActivity, if (isSelected) R.color.deck_surface_selected else R.color.deck_surface_raised))
+                strokeColor = ContextCompat.getColor(this@MainActivity, if (isSelected) R.color.glass_stroke_bright else R.color.glass_stroke)
+                setCardBackgroundColor(ContextCompat.getColor(this@MainActivity, if (isSelected) R.color.glass_card_bg_active else R.color.glass_card_bg))
                 isClickable = true
                 isFocusable = true
                 contentDescription = "Select $appName"

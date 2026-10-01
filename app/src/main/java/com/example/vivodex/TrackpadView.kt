@@ -63,7 +63,7 @@ class TrackpadView @JvmOverloads constructor(
         }
     }
 
-    // Control Deck feedback paints.
+    // Neutral glass feedback paints.
     private val liquidCorePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = context.getColor(R.color.deck_accent)
         style = Paint.Style.FILL
@@ -84,13 +84,8 @@ class TrackpadView @JvmOverloads constructor(
         strokeWidth = 2f * resources.displayMetrics.density
     }
     private val crystalDotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#3050647B")
+        color = Color.parseColor("#16FFFFFF")
         style = Paint.Style.FILL
-    }
-    private val majorGridPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#4050647B")
-        style = Paint.Style.STROKE
-        strokeWidth = resources.displayMetrics.density
     }
     private val glowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
@@ -109,7 +104,7 @@ class TrackpadView @JvmOverloads constructor(
 
         val density = resources.displayMetrics.density
 
-        // Fine grid plus sparse major lines keep orientation visible without competing with input.
+        // A quiet dot field gives the surface scale without adding visual noise.
         val step = 38f * density
         val dotRadius = 1.2f * density
         var gx = step
@@ -122,18 +117,6 @@ class TrackpadView @JvmOverloads constructor(
             gx += step
         }
 
-        val majorStep = step * 4
-        var majorX = majorStep
-        while (majorX < width) {
-            canvas.drawLine(majorX, 0f, majorX, height.toFloat(), majorGridPaint)
-            majorX += majorStep
-        }
-        var majorY = majorStep
-        while (majorY < height) {
-            canvas.drawLine(0f, majorY, width.toFloat(), majorY, majorGridPaint)
-            majorY += majorStep
-        }
-
         // 2. Liquid Two-Finger Bridge (When scrolling)
         if (activeTouchPoints.size >= 2) {
             val p1 = activeTouchPoints[0]
@@ -141,11 +124,11 @@ class TrackpadView @JvmOverloads constructor(
             canvas.drawLine(p1.x, p1.y, p2.x, p2.y, liquidBridgePaint)
         }
 
-        // Expanding cyan input ripples.
+        // Expanding glass input ripples.
         val rippleIterator = activeRipples.iterator()
         while (rippleIterator.hasNext()) {
             val ripple = rippleIterator.next()
-            ripplePaint.color = Color.argb(ripple.alpha, 95, 215, 245)
+            ripplePaint.color = Color.argb(ripple.alpha, 255, 255, 255)
             canvas.drawCircle(ripple.x, ripple.y, ripple.radius, ripplePaint)
             ripple.radius += 5f * density
             ripple.alpha = (ripple.alpha - 15).coerceAtLeast(0)
@@ -163,8 +146,8 @@ class TrackpadView @JvmOverloads constructor(
             val glowGradient = RadialGradient(
                 point.x, point.y, glowRadius,
                 intArrayOf(
-                    Color.parseColor("#455FD7F5"),
-                    Color.parseColor("#145FD7F5"),
+                    Color.parseColor("#42FFFFFF"),
+                    Color.parseColor("#12FFFFFF"),
                     Color.TRANSPARENT,
                 ),
                 floatArrayOf(0f, 0.5f, 1f),

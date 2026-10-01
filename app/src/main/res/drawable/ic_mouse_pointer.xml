@@ -26,9 +26,9 @@
         android:fillColor="#FFFFFF"
         android:pathData="M1.2,1.8 L1.2,16.5 L4.5,13.2 L8.5,22.2 L10.1,21.5 L6.2,12.5 L12.5,12.5 Z" />
 
-    <!-- Control Deck accent on the leading edge -->
+    <!-- Soft glass highlight on the leading edge -->
     <path
-        android:fillColor="#5FD7F5"
+        android:fillColor="#E6E6EB"
         android:pathData="M1.2,1.8 L1.2,16.5 L3.2,14.5 L3.2,3.8 Z" />
 
 </vector>
