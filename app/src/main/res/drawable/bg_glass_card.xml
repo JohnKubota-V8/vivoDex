@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="#24FFFFFF">
+    android:color="#38FFFFFF">
     <item>
         <layer-list>
             <item>
                 <shape android:shape="rectangle">
                     <gradient
                         android:angle="315"
-                        android:startColor="#24FFFFFF"
-                        android:centerColor="#14FFFFFF"
-                        android:endColor="#09FFFFFF" />
-                    <corners android:radius="10dp" />
+                        android:startColor="#50FFFFFF"
+                        android:centerColor="#30FFFFFF"
+                        android:endColor="#18FFFFFF" />
+                    <corners android:radius="@dimen/glass_card_radius" />
                     <stroke
                         android:width="1dp"
-                        android:color="#34FFFFFF" />
+                        android:color="@color/glass_stroke" />
                 </shape>
             </item>
             <item
@@ -24,9 +24,9 @@
                 <shape android:shape="rectangle">
                     <gradient
                         android:angle="270"
-                        android:startColor="#14FFFFFF"
+                        android:startColor="#38FFFFFF"
                         android:endColor="#00FFFFFF" />
-                    <corners android:radius="9dp" />
+                    <corners android:radius="7dp" />
                 </shape>
             </item>
         </layer-list>

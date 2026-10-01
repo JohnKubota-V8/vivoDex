@@ -832,7 +832,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
             val card = com.google.android.material.card.MaterialCardView(this).apply {
                 layoutParams = LinearLayout.LayoutParams((60 * density).toInt(), (60 * density).toInt())
                 radius = 8 * density
-                cardElevation = 0f
+                cardElevation = (if (isSelected) 6 else 3) * density
                 strokeWidth = if (isSelected) (2f * density).toInt() else (1 * density).toInt()
                 strokeColor = ContextCompat.getColor(this@MainActivity, if (isSelected) R.color.glass_stroke_bright else R.color.glass_stroke)
                 setCardBackgroundColor(ContextCompat.getColor(this@MainActivity, if (isSelected) R.color.glass_card_bg_active else R.color.glass_card_bg))

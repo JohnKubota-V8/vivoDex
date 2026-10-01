@@ -69,8 +69,8 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_glass_card"
                     app:cardBackgroundColor="@color/glass_card_bg"
-                    app:cardCornerRadius="10dp"
-                    app:cardElevation="0dp"
+                    app:cardCornerRadius="@dimen/glass_card_radius"
+                    app:cardElevation="@dimen/glass_card_elevation"
                     app:strokeColor="@color/glass_stroke"
                     app:strokeWidth="1dp">
 
@@ -170,8 +170,8 @@
                     android:layout_marginTop="10dp"
                     android:background="@drawable/bg_glass_card"
                     app:cardBackgroundColor="@color/glass_card_bg"
-                    app:cardCornerRadius="10dp"
-                    app:cardElevation="0dp"
+                    app:cardCornerRadius="@dimen/glass_card_radius"
+                    app:cardElevation="@dimen/glass_card_elevation"
                     app:strokeColor="@color/glass_stroke"
                     app:strokeWidth="1dp">
 
@@ -233,8 +233,8 @@
                     android:layout_marginTop="10dp"
                     android:background="@drawable/bg_glass_card"
                     app:cardBackgroundColor="@color/glass_card_bg"
-                    app:cardCornerRadius="10dp"
-                    app:cardElevation="0dp"
+                    app:cardCornerRadius="@dimen/glass_card_radius"
+                    app:cardElevation="@dimen/glass_card_elevation"
                     app:strokeColor="@color/glass_stroke"
                     app:strokeWidth="1dp">
 
@@ -358,6 +358,7 @@
         android:layout_marginEnd="12dp"
         android:layout_marginBottom="8dp"
         android:background="@drawable/bg_glass_card"
+        android:elevation="@dimen/glass_card_elevation"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">

@@ -17,12 +17,12 @@
     <color name="deck_danger">#FFFF737D</color>
 
     <!-- Glass Layers (Monochrome Alphas) -->
-    <color name="glass_card_bg">#16FFFFFF</color>
-    <color name="glass_card_bg_active">#26FFFFFF</color>
-    <color name="glass_stroke">@color/deck_stroke</color>
-    <color name="glass_stroke_bright">@color/deck_stroke_strong</color>
-    <color name="glass_trackpad_bg">#0DFFFFFF</color>
-    <color name="glass_button_bg">#14FFFFFF</color>
+    <color name="glass_card_bg">#2EFFFFFF</color>
+    <color name="glass_card_bg_active">#48FFFFFF</color>
+    <color name="glass_stroke">#66FFFFFF</color>
+    <color name="glass_stroke_bright">#8AFFFFFF</color>
+    <color name="glass_trackpad_bg">#20FFFFFF</color>
+    <color name="glass_button_bg">#28FFFFFF</color>
 
     <!-- Monochrome Accents (White & Grays) -->
     <color name="liquid_cyan">@color/deck_accent</color>

@@ -49,8 +49,8 @@
         android:layout_weight="1"
         android:background="@drawable/bg_glass_trackpad"
         app:cardBackgroundColor="@android:color/transparent"
-        app:cardCornerRadius="10dp"
-        app:cardElevation="0dp"
+        app:cardCornerRadius="@dimen/glass_card_radius"
+        app:cardElevation="@dimen/glass_surface_elevation"
         app:strokeWidth="0dp">
 
         <FrameLayout
