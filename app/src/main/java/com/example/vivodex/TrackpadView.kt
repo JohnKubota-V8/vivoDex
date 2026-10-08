@@ -50,7 +50,7 @@ class TrackpadView @JvmOverloads constructor(
     private var lastTwoFingerY = 0f
     private var accumulatedScrollY = 0f
 
-    // Liquid Ripples
+    // Touch ripples
     private class LiquidRipple(val x: Float, val y: Float, var radius: Float, var alpha: Int)
     private val activeRipples = mutableListOf<LiquidRipple>()
 
@@ -63,7 +63,7 @@ class TrackpadView @JvmOverloads constructor(
         }
     }
 
-    // Neutral glass feedback paints.
+    // Gold touch feedback over the navy control surface.
     private val liquidCorePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = context.getColor(R.color.deck_accent)
         style = Paint.Style.FILL
@@ -84,7 +84,7 @@ class TrackpadView @JvmOverloads constructor(
         strokeWidth = 2f * resources.displayMetrics.density
     }
     private val crystalDotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#16FFFFFF")
+        color = Color.parseColor("#B3506996")
         style = Paint.Style.FILL
     }
     private val glowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -105,8 +105,8 @@ class TrackpadView @JvmOverloads constructor(
         val density = resources.displayMetrics.density
 
         // A quiet dot field gives the surface scale without adding visual noise.
-        val step = 38f * density
-        val dotRadius = 1.2f * density
+        val step = 28f * density
+        val dotRadius = 1.4f * density
         var gx = step
         while (gx < width) {
             var gy = step
@@ -117,18 +117,18 @@ class TrackpadView @JvmOverloads constructor(
             gx += step
         }
 
-        // 2. Liquid Two-Finger Bridge (When scrolling)
+        // Two-finger bridge while scrolling.
         if (activeTouchPoints.size >= 2) {
             val p1 = activeTouchPoints[0]
             val p2 = activeTouchPoints[1]
             canvas.drawLine(p1.x, p1.y, p2.x, p2.y, liquidBridgePaint)
         }
 
-        // Expanding glass input ripples.
+        // Expanding input ripples.
         val rippleIterator = activeRipples.iterator()
         while (rippleIterator.hasNext()) {
             val ripple = rippleIterator.next()
-            ripplePaint.color = Color.argb(ripple.alpha, 255, 255, 255)
+            ripplePaint.color = Color.argb(ripple.alpha, 209, 173, 87)
             canvas.drawCircle(ripple.x, ripple.y, ripple.radius, ripplePaint)
             ripple.radius += 5f * density
             ripple.alpha = (ripple.alpha - 15).coerceAtLeast(0)
@@ -146,8 +146,8 @@ class TrackpadView @JvmOverloads constructor(
             val glowGradient = RadialGradient(
                 point.x, point.y, glowRadius,
                 intArrayOf(
-                    Color.parseColor("#42FFFFFF"),
-                    Color.parseColor("#12FFFFFF"),
+                    Color.parseColor("#66D1AD57"),
+                    Color.parseColor("#22D1AD57"),
                     Color.TRANSPARENT,
                 ),
                 floatArrayOf(0f, 0.5f, 1f),

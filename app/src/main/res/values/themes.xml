@@ -1,10 +1,17 @@
 <resources>
-    <!-- Base application theme configured for monochrome Liquid Glass. -->
+    <!-- Base application theme configured for the navy control deck. -->
     <style name="Base.Theme.VivoDex" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/deck_accent</item>
+        <item name="colorOnPrimary">@color/text_on_accent</item>
         <item name="colorSecondary">@color/text_glass_secondary</item>
-        <item name="colorSecondaryContainer">@color/deck_accent_dim</item>
+        <item name="colorSecondaryContainer">@color/deck_surface_selected</item>
         <item name="colorOnSecondaryContainer">@color/text_glass_primary</item>
+        <item name="colorSurface">@color/canvas_surface</item>
+        <item name="colorSurfaceVariant">@color/deck_surface_raised</item>
+        <item name="colorOnSurface">@color/text_glass_primary</item>
+        <item name="colorOnSurfaceVariant">@color/text_glass_secondary</item>
+        <item name="colorOutline">@color/deck_stroke</item>
+        <item name="colorError">@color/deck_danger</item>
         <item name="android:statusBarColor">@color/canvas_dark</item>
         <item name="android:navigationBarColor">@color/canvas_dark</item>
         <item name="android:windowBackground">@color/canvas_dark</item>
@@ -53,6 +60,16 @@
 
     <style name="Widget.VivoDex.BottomNavigation.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
         <item name="android:color">@android:color/transparent</item>
+    </style>
+
+    <style name="Widget.VivoDex.BottomNavigation.Label.Active" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Widget.VivoDex.BottomNavigation.Label.Inactive" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">normal</item>
     </style>
 
     <style name="Theme.VivoDex" parent="Base.Theme.VivoDex" />

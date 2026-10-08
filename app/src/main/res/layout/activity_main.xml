@@ -6,19 +6,36 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_ambient_mesh">
 
-    <com.google.android.material.appbar.MaterialToolbar
+    <FrameLayout
         android:id="@+id/toolbar"
         android:layout_width="0dp"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@android:color/transparent"
-        app:contentInsetStart="16dp"
+        android:layout_height="72dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:subtitle="@string/control_deck"
-        app:subtitleTextColor="@color/text_glass_muted"
-        app:title="vivoDex"
-        app:titleTextColor="@color/text_glass_primary" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|center_vertical"
+            android:layout_marginStart="@dimen/page_horizontal_padding"
+            android:fontFamily="sans-serif"
+            android:text="vivoDex"
+            android:textColor="@color/text_glass_primary"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/toolbar_context"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="@dimen/page_horizontal_padding"
+            android:text="@string/control_deck"
+            android:textColor="@color/text_glass_secondary"
+            android:textSize="14sp"
+            android:visibility="gone" />
+    </FrameLayout>
 
     <FrameLayout
         android:id="@+id/content_container"
@@ -35,10 +52,10 @@
             android:layout_height="match_parent"
             android:clipToPadding="false"
             android:fillViewport="true"
-            android:paddingStart="14dp"
-            android:paddingTop="6dp"
-            android:paddingEnd="14dp"
-            android:paddingBottom="20dp"
+            android:paddingStart="@dimen/page_horizontal_padding"
+            android:paddingTop="8dp"
+            android:paddingEnd="@dimen/page_horizontal_padding"
+            android:paddingBottom="24dp"
             android:scrollbars="none">
 
             <LinearLayout
@@ -46,108 +63,116 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Workspace"
-                    android:textAppearance="?attr/textAppearanceHeadlineSmall"
-                    android:textColor="@color/text_glass_primary"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:layout_marginBottom="14dp"
-                    android:text="Connect a display, choose a target, then launch."
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="@color/text_glass_secondary" />
-
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/card_display_status"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_glass_card"
-                    app:cardBackgroundColor="@color/glass_card_bg"
+                    app:cardBackgroundColor="@color/deck_surface_raised"
                     app:cardCornerRadius="@dimen/glass_card_radius"
-                    app:cardElevation="@dimen/glass_card_elevation"
-                    app:strokeColor="@color/glass_stroke"
-                    app:strokeWidth="1dp">
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="EXTERNAL DISPLAY"
-                            android:textColor="@color/text_glass_muted"
-                            android:textSize="11sp"
-                            android:textStyle="bold"
-                            android:letterSpacing="0.1" />
+                        android:padding="18dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
 
-                            <ImageView
-                                android:id="@+id/display_icon"
-                                android:layout_width="30dp"
-                                android:layout_height="30dp"
-                                android:importantForAccessibility="no"
-                                android:src="@drawable/ic_display"
-                                app:tint="@color/text_glass_primary" />
+                            <FrameLayout
+                                android:layout_width="44dp"
+                                android:layout_height="44dp"
+                                android:background="@drawable/bg_display_icon_panel">
 
-                            <TextView
-                                android:id="@+id/display_status"
+                                <ImageView
+                                    android:id="@+id/display_icon"
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:layout_gravity="center"
+                                    android:importantForAccessibility="no"
+                                    android:src="@drawable/ic_display"
+                                    app:tint="@color/text_glass_secondary" />
+                            </FrameLayout>
+
+                            <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
+                                android:layout_marginStart="14dp"
                                 android:layout_weight="1"
-                                android:text="No external display connected"
-                                android:textAppearance="?attr/textAppearanceBodyMedium"
-                                android:textColor="@color/text_glass_primary" />
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/display_status"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="No external display"
+                                    android:textColor="@color/text_glass_primary"
+                                    android:textSize="17sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/display_status_detail"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="Connect USB-C to a monitor or TV"
+                                    android:textColor="@color/text_glass_secondary"
+                                    android:textSize="14sp" />
+                            </LinearLayout>
                         </LinearLayout>
 
-                        <View
+                        <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="1dp"
+                            android:layout_height="58dp"
                             android:layout_marginTop="14dp"
-                            android:layout_marginBottom="14dp"
-                            android:background="@color/glass_stroke" />
+                            android:background="@drawable/bg_target_panel"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingStart="14dp"
+                            android:paddingEnd="14dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="CURRENT TARGET"
-                            android:textColor="@color/text_glass_muted"
-                            android:textSize="11sp"
-                            android:textStyle="bold"
-                            android:letterSpacing="0.1" />
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
 
-                        <TextView
-                            android:id="@+id/selected_display"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="7dp"
-                            android:text="Target: No target display selected"
-                            android:textAppearance="?attr/textAppearanceTitleSmall"
-                            android:textColor="@color/text_glass_primary"
-                            android:textStyle="bold" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:letterSpacing="0.08"
+                                    android:text="TARGET"
+                                    android:textColor="@color/text_glass_secondary"
+                                    android:textSize="11sp" />
 
-                        <TextView
-                            android:id="@+id/display_details"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:textAppearance="?attr/textAppearanceBodySmall"
-                            android:textColor="@color/text_glass_secondary" />
+                                <TextView
+                                    android:id="@+id/selected_display"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:ellipsize="end"
+                                    android:maxLines="1"
+                                    android:text="Phone display"
+                                    android:textColor="@color/text_glass_primary"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/display_details"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:gravity="end"
+                                android:maxLines="2"
+                                android:textColor="@color/text_glass_secondary"
+                                android:textSize="13sp" />
+                        </LinearLayout>
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/select_display"
@@ -155,11 +180,14 @@
                             android:layout_height="48dp"
                             android:layout_marginTop="14dp"
                             android:background="@drawable/bg_glass_button"
-                            android:text="Switch Display"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
+                            android:text="Switch display"
+                            android:textAllCaps="false"
                             android:textColor="@color/text_glass_primary"
-                            app:backgroundTint="@null"
-                            app:icon="@drawable/ic_display"
-                            app:iconTint="@color/text_glass_primary" />
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            app:backgroundTint="@null" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -167,62 +195,72 @@
                     android:id="@+id/card_accessibility"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:background="@drawable/bg_glass_card"
-                    app:cardBackgroundColor="@color/glass_card_bg"
+                    android:layout_marginTop="14dp"
+                    app:cardBackgroundColor="@color/deck_surface_feature"
                     app:cardCornerRadius="@dimen/glass_card_radius"
-                    app:cardElevation="@dimen/glass_card_elevation"
-                    app:strokeColor="@color/glass_stroke"
-                    app:strokeWidth="1dp">
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="18dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
+                            android:gravity="top"
                             android:orientation="horizontal">
 
                             <ImageView
                                 android:id="@+id/accessibility_icon"
-                                android:layout_width="24dp"
-                                android:layout_height="24dp"
+                                android:layout_width="26dp"
+                                android:layout_height="26dp"
+                                android:layout_marginTop="1dp"
                                 android:importantForAccessibility="no"
                                 android:src="@drawable/ic_warning"
-                                app:tint="@color/text_glass_secondary" />
+                                app:tint="@color/deck_warning" />
 
-                            <TextView
-                                android:id="@+id/accessibility_status"
+                            <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
+                                android:layout_marginStart="14dp"
                                 android:layout_weight="1"
-                                android:text="Accessibility Service: Disabled"
-                                android:textAppearance="?attr/textAppearanceBodyMedium"
-                                android:textColor="@color/text_glass_primary"
-                                android:textStyle="bold" />
-                        </LinearLayout>
+                                android:orientation="vertical">
 
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="7dp"
-                            android:text="Needed for the cursor, clicks and gestures on the target display."
-                            android:textAppearance="?attr/textAppearanceBodySmall"
-                            android:textColor="@color/text_glass_secondary" />
+                                <TextView
+                                    android:id="@+id/accessibility_status"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="Accessibility is off"
+                                    android:textColor="@color/text_glass_primary"
+                                    android:textSize="17sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="3dp"
+                                    android:text="Required for the virtual mouse, clicks and gestures on the target display."
+                                    android:textColor="@color/text_glass_secondary"
+                                    android:textSize="14sp" />
+                            </LinearLayout>
+                        </LinearLayout>
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/open_accessibility_settings"
                             android:layout_width="match_parent"
                             android:layout_height="48dp"
-                            android:layout_marginTop="12dp"
-                            android:background="@drawable/bg_glass_button"
-                            android:text="Enable Accessibility"
+                            android:layout_marginTop="14dp"
+                            android:background="@drawable/bg_glass_button_primary"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
+                            android:text="Enable accessibility"
+                            android:textAllCaps="false"
                             android:textColor="@color/button_text_glass"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
                             app:backgroundTint="@null" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -230,19 +268,17 @@
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:background="@drawable/bg_glass_card"
-                    app:cardBackgroundColor="@color/glass_card_bg"
+                    android:layout_marginTop="14dp"
+                    app:cardBackgroundColor="@color/deck_surface_raised"
                     app:cardCornerRadius="@dimen/glass_card_radius"
-                    app:cardElevation="@dimen/glass_card_elevation"
-                    app:strokeColor="@color/glass_stroke"
-                    app:strokeWidth="1dp">
+                    app:cardElevation="0dp"
+                    app:strokeWidth="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="18dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -260,36 +296,43 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="Apps"
-                                    android:textAppearance="?attr/textAppearanceTitleMedium"
                                     android:textColor="@color/text_glass_primary"
+                                    android:textSize="18sp"
                                     android:textStyle="bold" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="2dp"
-                                    android:text="Select a favorite, then choose where to open it."
-                                    android:textAppearance="?attr/textAppearanceBodySmall"
-                                    android:textColor="@color/text_glass_secondary" />
+                                    android:text="Pick one, then choose where to open it"
+                                    android:textColor="@color/text_glass_secondary"
+                                    android:textSize="13sp" />
                             </LinearLayout>
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/select_app"
                                 android:layout_width="wrap_content"
-                                android:layout_height="48dp"
+                                android:layout_height="44dp"
                                 android:layout_marginStart="10dp"
                                 android:background="@drawable/bg_glass_button"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
                                 android:text="Add"
+                                android:textAllCaps="false"
                                 android:textColor="@color/text_glass_primary"
+                                android:textSize="15sp"
+                                android:textStyle="bold"
                                 app:backgroundTint="@null"
                                 app:icon="@drawable/ic_add"
+                                app:iconPadding="4dp"
+                                app:iconSize="18dp"
                                 app:iconTint="@color/text_glass_primary" />
                         </LinearLayout>
 
                         <HorizontalScrollView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="16dp"
+                            android:layout_marginTop="14dp"
                             android:clipToPadding="false"
                             android:scrollbars="none">
 
@@ -304,20 +347,22 @@
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/launch_app"
                             android:layout_width="match_parent"
-                            android:layout_height="50dp"
+                            android:layout_height="52dp"
                             android:layout_marginTop="16dp"
                             android:background="@drawable/bg_glass_button_primary"
-                            android:text="Launch Selected App"
-                            android:textColor="@color/text_glass_primary"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
+                            android:text="Launch selected app"
+                            android:textAllCaps="false"
+                            android:textColor="@color/button_text_glass"
+                            android:textSize="16sp"
                             android:textStyle="bold"
-                            app:backgroundTint="@null"
-                            app:icon="@drawable/ic_display"
-                            app:iconTint="@color/text_glass_primary" />
+                            app:backgroundTint="@null" />
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
+                            android:layout_marginTop="12dp"
                             android:orientation="horizontal">
 
                             <com.google.android.material.button.MaterialButton
@@ -326,18 +371,28 @@
                                 android:layout_height="48dp"
                                 android:layout_weight="1"
                                 android:background="@drawable/bg_glass_button"
-                                android:text="Open on Phone"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:text="Open on phone"
+                                android:textAllCaps="false"
                                 android:textColor="@color/text_glass_primary"
+                                android:textSize="15sp"
+                                android:textStyle="bold"
                                 app:backgroundTint="@null" />
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/remove_favorite"
                                 android:layout_width="wrap_content"
                                 android:layout_height="48dp"
-                                android:layout_marginStart="8dp"
-                                android:background="@drawable/bg_glass_button"
+                                android:layout_marginStart="10dp"
+                                android:background="@android:color/transparent"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
                                 android:text="Remove"
+                                android:textAllCaps="false"
                                 android:textColor="@color/deck_danger"
+                                android:textSize="15sp"
+                                android:textStyle="bold"
                                 android:visibility="gone"
                                 app:backgroundTint="@null" />
                         </LinearLayout>
@@ -353,12 +408,8 @@
     <FrameLayout
         android:id="@+id/bottom_navigation_container"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_marginEnd="12dp"
-        android:layout_marginBottom="8dp"
-        android:background="@drawable/bg_glass_card"
-        android:elevation="@dimen/glass_card_elevation"
+        android:layout_height="84dp"
+        android:background="@drawable/bg_bottom_nav"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -373,12 +424,18 @@
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottom_navigation"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:background="@android:color/transparent"
             app:itemActiveIndicatorStyle="@style/Widget.VivoDex.BottomNavigation.ActiveIndicator"
+            app:itemIconSize="24dp"
             app:itemIconTint="@color/nav_item_color"
+            app:itemPaddingBottom="8dp"
+            app:itemPaddingTop="8dp"
             app:itemRippleColor="@color/deck_accent_dim"
+            app:itemTextAppearanceActive="@style/Widget.VivoDex.BottomNavigation.Label.Active"
+            app:itemTextAppearanceInactive="@style/Widget.VivoDex.BottomNavigation.Label.Inactive"
             app:itemTextColor="@color/nav_item_color"
+            app:labelVisibilityMode="labeled"
             app:menu="@menu/bottom_nav_menu" />
     </FrameLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

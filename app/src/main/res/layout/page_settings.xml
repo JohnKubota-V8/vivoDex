@@ -6,10 +6,10 @@
     android:layout_height="match_parent"
     android:clipToPadding="false"
     android:fillViewport="true"
-    android:paddingStart="14dp"
-    android:paddingTop="6dp"
-    android:paddingEnd="14dp"
-    android:paddingBottom="20dp"
+    android:paddingStart="@dimen/page_horizontal_padding"
+    android:paddingTop="14dp"
+    android:paddingEnd="@dimen/page_horizontal_padding"
+    android:paddingBottom="24dp"
     android:scrollbars="none"
     android:visibility="gone">
 
@@ -22,62 +22,53 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Settings"
-            android:textAppearance="?attr/textAppearanceHeadlineSmall"
             android:textColor="@color/text_glass_primary"
+            android:textSize="28sp"
             android:textStyle="bold" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:layout_marginBottom="14dp"
-            android:text="Screen behavior and accessibility controls."
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="@color/text_glass_secondary" />
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_glass_card"
-            app:cardBackgroundColor="@color/glass_card_bg"
+            android:layout_marginTop="14dp"
+            app:cardBackgroundColor="@color/deck_surface_raised"
             app:cardCornerRadius="@dimen/glass_card_radius"
-            app:cardElevation="@dimen/glass_card_elevation"
-            app:strokeColor="@color/glass_stroke"
-            app:strokeWidth="1dp">
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="18dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Keep screen awake"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textColor="@color/text_glass_primary"
+                    android:textSize="17sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/awake_status"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:textAppearance="?attr/textAppearanceBodySmall"
-                    android:textColor="@color/text_glass_secondary" />
+                    android:layout_marginTop="3dp"
+                    android:text="Turns on automatically when HDMI connects"
+                    android:textColor="@color/text_glass_secondary"
+                    android:textSize="14sp" />
 
                 <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
+                    android:layout_height="52dp"
                     android:layout_marginTop="14dp"
-                    android:background="@drawable/bg_glass_button">
+                    android:background="@drawable/bg_target_panel">
 
                     <View
                         android:id="@+id/awake_glass_indicator"
                         android:layout_width="0dp"
                         android:layout_height="0dp"
-                        android:background="@drawable/bg_nav_glass_indicator"
+                        android:background="@drawable/bg_segment_indicator"
                         android:importantForAccessibility="no" />
 
                     <RadioGroup
@@ -98,6 +89,7 @@
                             android:gravity="center"
                             android:text="Auto"
                             android:textColor="@color/segment_text_color"
+                            android:textSize="16sp"
                             android:textStyle="bold" />
 
                         <RadioButton
@@ -110,6 +102,7 @@
                             android:gravity="center"
                             android:text="On"
                             android:textColor="@color/segment_text_color"
+                            android:textSize="16sp"
                             android:textStyle="bold" />
 
                         <RadioButton
@@ -122,44 +115,82 @@
                             android:gravity="center"
                             android:text="Off"
                             android:textColor="@color/segment_text_color"
+                            android:textSize="16sp"
                             android:textStyle="bold" />
                     </RadioGroup>
                 </FrameLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="18dp"
-                    android:layout_marginBottom="14dp"
-                    android:background="@color/glass_stroke" />
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            app:cardBackgroundColor="@color/deck_surface_raised"
+            app:cardCornerRadius="@dimen/glass_card_radius"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
 
-                <com.google.android.material.materialswitch.MaterialSwitch
-                    android:id="@+id/auto_disable_accessibility"
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Auto-disable Accessibility"
-                    android:textColor="@color/text_glass_primary"
-                    android:textStyle="bold"
-                    app:thumbTint="@color/switch_thumb_glass"
-                    app:trackTint="@color/switch_track_glass" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                <TextView
-                    android:id="@+id/auto_disable_status"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:text="Turns off 10 minutes after leaving vivoDex"
-                    android:textAppearance="?attr/textAppearanceBodySmall"
-                    android:textColor="@color/text_glass_secondary" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Auto-disable accessibility"
+                            android:textColor="@color/text_glass_primary"
+                            android:textSize="17sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/auto_disable_status"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:text="Turns off 10 minutes after leaving vivoDex"
+                            android:textColor="@color/text_glass_secondary"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/auto_disable_accessibility"
+                        android:layout_width="wrap_content"
+                        android:layout_height="48dp"
+                        android:layout_marginStart="12dp"
+                        android:contentDescription="Auto-disable accessibility after leaving vivoDex"
+                        android:text=""
+                        app:thumbTint="@color/switch_thumb_glass"
+                        app:trackTint="@color/switch_track_glass" />
+                </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/disable_accessibility_now"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginTop="14dp"
-                    android:background="@drawable/bg_glass_button"
-                    android:text="Turn Off Accessibility Now"
+                    android:background="@drawable/bg_button_danger"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="Turn off accessibility now"
+                    android:textAllCaps="false"
                     android:textColor="@color/deck_danger"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
                     app:backgroundTint="@null" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

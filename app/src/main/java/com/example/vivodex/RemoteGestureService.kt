@@ -2,9 +2,6 @@ package com.example.vivodex
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
-import android.animation.Animator
-import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
 import android.graphics.Path
 import android.graphics.PixelFormat
 import android.hardware.display.DisplayManager
@@ -21,7 +18,6 @@ import android.view.WindowManager
 import android.view.accessibility.AccessibilityWindowInfo
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
-import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
@@ -33,7 +29,7 @@ class RemoteGestureService : AccessibilityService() {
     private var cursorVisible = true
     private var blackoutView: View? = null
     private var blackoutWindowManager: WindowManager? = null
-    private val blackoutAnimators = mutableListOf<Animator>()
+    private var lastBlackoutTapTime = 0L
     private var keepScreenAwake = false
     private var gestureInFlight = false
     private var pendingScroll: ScrollRequest? = null
@@ -86,7 +82,7 @@ class RemoteGestureService : AccessibilityService() {
     }
 
     fun tap(displayId: Int, x: Float, y: Float): Boolean {
-        resetCursorInactivityTimer()
+        resetCursorInactivityTimer(displayId)
         val bounds = displayBounds(displayId) ?: return false
         val clampedX = x.coerceIn(0f, bounds.width().toFloat() - 1f)
         val clampedY = y.coerceIn(0f, bounds.height().toFloat() - 1f)
@@ -98,7 +94,7 @@ class RemoteGestureService : AccessibilityService() {
     }
 
     fun longPress(displayId: Int, x: Float, y: Float): Boolean {
-        resetCursorInactivityTimer()
+        resetCursorInactivityTimer(displayId)
         val bounds = displayBounds(displayId) ?: return false
         val clampedX = x.coerceIn(0f, bounds.width().toFloat() - 1f)
         val clampedY = y.coerceIn(0f, bounds.height().toFloat() - 1f)
@@ -110,7 +106,7 @@ class RemoteGestureService : AccessibilityService() {
     }
 
     fun drag(displayId: Int, startX: Float, startY: Float, endX: Float, endY: Float, durationMs: Long = 250): Boolean {
-        resetCursorInactivityTimer()
+        resetCursorInactivityTimer(displayId)
         val bounds = displayBounds(displayId) ?: return false
         val clampedStartX = startX.coerceIn(0f, bounds.width().toFloat() - 1f)
         val clampedStartY = startY.coerceIn(0f, bounds.height().toFloat() - 1f)
@@ -127,7 +123,7 @@ class RemoteGestureService : AccessibilityService() {
     }
 
     fun scroll(displayId: Int, x: Float, y: Float, deltaX: Float, deltaY: Float): Boolean {
-        resetCursorInactivityTimer()
+        resetCursorInactivityTimer(displayId)
         val bounds = displayBounds(displayId) ?: return false
         val startX = x.coerceIn(0f, bounds.width().toFloat() - 1f)
         val startY = y.coerceIn(0f, bounds.height().toFloat() - 1f)
@@ -156,7 +152,7 @@ class RemoteGestureService : AccessibilityService() {
     }
 
     fun pinch(displayId: Int, x: Float, y: Float, scale: Float): Boolean {
-        resetCursorInactivityTimer()
+        resetCursorInactivityTimer(displayId)
         val bounds = displayBounds(displayId) ?: return false
         if (scale <= 0f) return false
 
@@ -184,8 +180,12 @@ class RemoteGestureService : AccessibilityService() {
     }
 
     fun moveCursor(displayId: Int, x: Float, y: Float) {
+        if (displayId == Display.DEFAULT_DISPLAY) {
+            if (cursorView != null) removeCursor()
+            return
+        }
         if (!cursorVisible) return
-        resetCursorInactivityTimer()
+        resetCursorInactivityTimer(displayId)
         val display = getSystemService(DisplayManager::class.java).getDisplay(displayId) ?: return
         val bounds = displayBounds(displayId) ?: return
         if (cursorDisplayId != displayId) removeCursor()
@@ -233,7 +233,11 @@ class RemoteGestureService : AccessibilityService() {
         }
     }
 
-    private fun resetCursorInactivityTimer() {
+    private fun resetCursorInactivityTimer(displayId: Int = cursorDisplayId) {
+        if (displayId == Display.DEFAULT_DISPLAY) {
+            if (cursorView != null) removeCursor()
+            return
+        }
         mainHandler.removeCallbacks(autoHideCursorRunnable)
         if (cursorView?.visibility != View.VISIBLE && cursorVisible) {
             cursorView?.visibility = View.VISIBLE
@@ -308,7 +312,9 @@ class RemoteGestureService : AccessibilityService() {
             ?.mapNotNull { it.findFocus(AccessibilityNodeInfo.FOCUS_INPUT) }
             ?.firstOrNull { it.isEditable }
 
-    fun blackoutPhoneScreen(): Boolean {
+    fun blackoutPhoneScreen(): Boolean = showBlackoutOverlay()
+
+    private fun showBlackoutOverlay(): Boolean {
         if (blackoutView != null) return true
         val display = getSystemService(DisplayManager::class.java).getDisplay(Display.DEFAULT_DISPLAY) ?: return false
         val windowContext = createWindowContext(display, WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY, null)
@@ -320,7 +326,12 @@ class RemoteGestureService : AccessibilityService() {
             contentDescription = "Wake phone screen"
             setOnTouchListener { _, event ->
                 if (event.actionMasked == MotionEvent.ACTION_UP) {
-                    performClick()
+                    if (lastBlackoutTapTime != 0L && event.eventTime - lastBlackoutTapTime <= DOUBLE_TAP_TIMEOUT_MS) {
+                        lastBlackoutTapTime = 0L
+                        performClick()
+                    } else {
+                        lastBlackoutTapTime = event.eventTime
+                    }
                 }
                 true
             }
@@ -328,7 +339,7 @@ class RemoteGestureService : AccessibilityService() {
         }
 
         val hintText = TextView(windowContext).apply {
-            text = "Phone screen dimmed\nAnti-burn protection is active\n\nTap anywhere to wake"
+            text = "Phone screen dimmed\nAnti-burn protection is active\n\nDouble tap anywhere to wake"
             setTextColor(getColor(R.color.text_glass_primary))
             textSize = 13f
             setBackgroundResource(R.drawable.bg_glass_alert)
@@ -341,30 +352,6 @@ class RemoteGestureService : AccessibilityService() {
             )
         }
         frame.addView(hintText)
-
-        // OLED Anti-Burn-in Drift Animators (Lissajous curves with prime period intervals)
-        val density = windowContext.resources.displayMetrics.density
-        val driftX = 70f * density
-        val driftY = 120f * density
-
-        val animX = ObjectAnimator.ofFloat(hintText, View.TRANSLATION_X, -driftX, driftX).apply {
-            duration = 11000L
-            repeatMode = ValueAnimator.REVERSE
-            repeatCount = ValueAnimator.INFINITE
-            interpolator = AccelerateDecelerateInterpolator()
-        }
-        val animY = ObjectAnimator.ofFloat(hintText, View.TRANSLATION_Y, -driftY, driftY).apply {
-            duration = 17000L
-            repeatMode = ValueAnimator.REVERSE
-            repeatCount = ValueAnimator.INFINITE
-            interpolator = AccelerateDecelerateInterpolator()
-        }
-        val animAlpha = ObjectAnimator.ofFloat(hintText, View.ALPHA, 0.35f, 0.70f).apply {
-            duration = 7000L
-            repeatMode = ValueAnimator.REVERSE
-            repeatCount = ValueAnimator.INFINITE
-            interpolator = AccelerateDecelerateInterpolator()
-        }
 
         val windowManager = windowContext.getSystemService(WindowManager::class.java)
         val params = WindowManager.LayoutParams(
@@ -384,8 +371,7 @@ class RemoteGestureService : AccessibilityService() {
             windowManager.addView(frame, params)
             blackoutView = frame
             blackoutWindowManager = windowManager
-            blackoutAnimators += listOf(animX, animY, animAlpha)
-            blackoutAnimators.forEach(Animator::start)
+            hintText.postDelayed({ hintText.visibility = View.GONE }, BLACKOUT_HINT_DURATION_MS)
             true
         } catch (error: WindowManager.BadTokenException) {
             Log.w(TAG, "Could not add blackout overlay", error)
@@ -411,8 +397,6 @@ class RemoteGestureService : AccessibilityService() {
     }
 
     private fun removeBlackout() {
-        blackoutAnimators.forEach { it.cancel() }
-        blackoutAnimators.clear()
         blackoutView?.let { view ->
             try {
                 blackoutWindowManager?.removeView(view)
@@ -422,12 +406,15 @@ class RemoteGestureService : AccessibilityService() {
         }
         blackoutView = null
         blackoutWindowManager = null
+        lastBlackoutTapTime = 0L
     }
 
     companion object {
         private const val TAG = "VivoDex"
         private const val PREFS_NAME = "vivodex_prefs"
         private const val AUTO_DISABLE_DEADLINE = "auto_disable_deadline"
+        private const val BLACKOUT_HINT_DURATION_MS = 5_000L
+        private const val DOUBLE_TAP_TIMEOUT_MS = 350L
         const val CURSOR_AUTO_HIDE_DELAY_MS = 10_000L
         const val AUTO_DISABLE_DELAY_MS = 10 * 60 * 1000L
 
