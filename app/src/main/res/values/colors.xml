@@ -3,27 +3,40 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- Obsidian Black Palette (Pure Dark Tone, No Colors) -->
-    <color name="canvas_dark">#FF000000</color>
-    <color name="canvas_surface">#FF0B0B0E</color>
+    <!-- Navy and gold control-deck palette. -->
+    <color name="canvas_dark">#FF1E2B48</color>
+    <color name="canvas_surface">#FF223250</color>
+    <color name="deck_surface_raised">#FF2A3D63</color>
+    <color name="deck_surface_feature">#FF344A75</color>
+    <color name="deck_surface_inset">#FF1C2945</color>
+    <color name="deck_surface_selected">#FF3B507D</color>
+    <color name="deck_stroke">#FF506996</color>
+    <color name="deck_stroke_strong">#FF6B82AF</color>
+    <color name="deck_accent">#FFD1AD57</color>
+    <color name="deck_accent_dim">#66D1AD57</color>
+    <color name="deck_success">#FFD1AD57</color>
+    <color name="deck_warning">#FFD1AD57</color>
+    <color name="deck_danger">#FFFF9899</color>
 
-    <!-- Glass Layers (Monochrome Alphas) -->
-    <color name="glass_card_bg">#12FFFFFF</color>
-    <color name="glass_card_bg_active">#28FFFFFF</color>
-    <color name="glass_stroke">#22FFFFFF</color>
-    <color name="glass_stroke_bright">#50FFFFFF</color>
-    <color name="glass_trackpad_bg">#0EFFFFFF</color>
-    <color name="glass_button_bg">#18FFFFFF</color>
+    <!-- Existing resource names retained for runtime-created views. -->
+    <color name="glass_card_bg">@color/deck_surface_raised</color>
+    <color name="glass_card_bg_active">@color/deck_surface_selected</color>
+    <color name="glass_stroke">@color/deck_stroke</color>
+    <color name="glass_stroke_bright">@color/deck_accent</color>
+    <color name="glass_trackpad_bg">@color/deck_surface_raised</color>
+    <color name="glass_button_bg">@color/deck_surface_inset</color>
 
-    <!-- Monochrome Accents (White & Grays) -->
-    <color name="liquid_cyan">#FFFFFFFF</color>
-    <color name="liquid_cyan_dim">#80FFFFFF</color>
-    <color name="liquid_cyan_glow">#24FFFFFF</color>
-    <color name="liquid_violet">#E4E4E7</color>
-    <color name="liquid_violet_dim">#80E4E4E7</color>
-    <color name="liquid_violet_glow">#1EFFFFFF</color>
+    <!-- Touch feedback. -->
+    <color name="liquid_cyan">@color/deck_accent</color>
+    <color name="liquid_cyan_dim">#B3D1AD57</color>
+    <color name="liquid_cyan_glow">#3DD1AD57</color>
+    <color name="liquid_violet">@color/deck_stroke_strong</color>
+    <color name="liquid_violet_dim">#99506996</color>
+    <color name="liquid_violet_glow">#33506996</color>
 
-    <!-- Text colors -->
-    <color name="text_glass_primary">#FFFFFFFF</color>
-    <color name="text_glass_secondary">#A1A1AA</color>
+    <!-- Warm text tones from the reference design. -->
+    <color name="text_glass_primary">#FFF3E8CF</color>
+    <color name="text_glass_secondary">#FFC7C0AE</color>
+    <color name="text_glass_muted">#FFA7ACB7</color>
+    <color name="text_on_accent">@color/canvas_dark</color>
 </resources>

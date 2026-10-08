@@ -53,6 +53,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
 
     // Display Page Views
     private lateinit var statusView: TextView
+    private lateinit var statusDetailView: TextView
     private lateinit var selectedDisplayView: TextView
     private lateinit var displayDetailsView: TextView
     private lateinit var displayIcon: ImageView
@@ -70,6 +71,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
     private lateinit var awakeModeGroup: RadioGroup
     private lateinit var awakeGlassIndicator: View
     private lateinit var autoDisableSwitch: MaterialSwitch
+    private lateinit var toolbarContextView: TextView
 
     // Touchpad Page Views
     private lateinit var touchpadPage: View
@@ -102,6 +104,8 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
     private var pendingScrollY = 0f
     private val scrollHandler = Handler(Looper.getMainLooper())
     private var scrollScheduled = false
+    private var currentPageIndex = 0
+    private var pageAnimationGeneration = 0
 
     private val cursorFrameCallback = Choreographer.FrameCallback {
         cursorUpdateScheduled = false
@@ -162,7 +166,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         }
 
         renderFavorites()
-        showPage(showTouchpad = false)
+        showPage(0, animate = false)
     }
 
     override fun onStart() {
@@ -190,6 +194,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
     private fun initViews() {
         // Display Page
         statusView = findViewById(R.id.display_status)
+        statusDetailView = findViewById(R.id.display_status_detail)
         selectedDisplayView = findViewById(R.id.selected_display)
         displayDetailsView = findViewById(R.id.display_details)
         displayIcon = findViewById(R.id.display_icon)
@@ -207,6 +212,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         awakeModeGroup = findViewById(R.id.awake_mode_group)
         awakeGlassIndicator = findViewById(R.id.awake_glass_indicator)
         autoDisableSwitch = findViewById(R.id.auto_disable_accessibility)
+        toolbarContextView = findViewById(R.id.toolbar_context)
 
         // Touchpad Page
         touchpadPage = findViewById(R.id.touchpad_page)
@@ -231,16 +237,16 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
             moveNavGlassIndicator(item.itemId)
             when (item.itemId) {
                 R.id.nav_display -> {
-                    showPage(showTouchpad = false)
+                    showPage(0)
                     true
                 }
                 R.id.nav_touchpad -> {
-                    showPage(showTouchpad = true)
+                    showPage(1)
                     ensureCursorPosition()
                     true
                 }
                 R.id.nav_settings -> {
-                    showSettings()
+                    showPage(2)
                     true
                 }
                 else -> false
@@ -352,21 +358,25 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
     }
 
     private fun moveNavGlassIndicator(itemId: Int, animate: Boolean = true) {
-        val item = bottomNavigation.findViewById<View>(itemId) ?: return
+        val itemIndex = (0 until bottomNavigation.menu.size()).indexOfFirst {
+            bottomNavigation.menu.getItem(it).itemId == itemId
+        }
+        if (itemIndex == -1 || bottomNavigation.width == 0) return
         val horizontalInset = resources.getDimensionPixelSize(R.dimen.nav_indicator_horizontal_inset)
         val verticalInset = resources.getDimensionPixelSize(R.dimen.nav_indicator_vertical_inset)
+        val itemWidth = bottomNavigation.width / bottomNavigation.menu.size()
         val params = navGlassIndicator.layoutParams as FrameLayout.LayoutParams
-        params.width = item.width - horizontalInset * 2
-        params.height = item.height - verticalInset * 2
+        params.width = itemWidth - horizontalInset * 2
+        params.height = bottomNavigation.height - verticalInset * 2
         params.topMargin = verticalInset
         navGlassIndicator.layoutParams = params
 
-        val targetX = (item.left + horizontalInset).toFloat()
+        val targetX = (itemIndex * itemWidth + horizontalInset).toFloat()
         navGlassIndicator.animate().cancel()
         if (animate) {
             navGlassIndicator.animate()
                 .translationX(targetX)
-                .setDuration(320)
+                .setDuration(PAGE_TRANSITION_DURATION_MS)
                 .setInterpolator(android.view.animation.PathInterpolator(0.2f, 0.8f, 0.2f, 1f))
                 .start()
         } else {
@@ -387,7 +397,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         if (animate) {
             awakeGlassIndicator.animate()
                 .translationX(item.left.toFloat())
-                .setDuration(320)
+                .setDuration(200)
                 .setInterpolator(android.view.animation.PathInterpolator(0.2f, 0.8f, 0.2f, 1f))
                 .start()
         } else {
@@ -424,20 +434,59 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         speedButton.text = "${speed}x"
     }
 
-    private fun showPage(showTouchpad: Boolean) {
-        displayPage.visibility = if (showTouchpad) View.GONE else View.VISIBLE
-        touchpadPage.visibility = if (showTouchpad) View.VISIBLE else View.GONE
-        settingsPage.visibility = View.GONE
-    }
+    private fun showPage(targetIndex: Int, animate: Boolean = true) {
+        val pages = arrayOf(displayPage, touchpadPage, settingsPage)
+        val previousPage = pages[currentPageIndex]
+        val targetPage = pages[targetIndex]
+        val direction = if (targetIndex > currentPageIndex) 1f else -1f
+        val offset = 16f * resources.displayMetrics.density
+        val interpolator = android.view.animation.PathInterpolator(0.2f, 0.8f, 0.2f, 1f)
 
-    private fun showSettings() {
-        displayPage.visibility = View.GONE
-        touchpadPage.visibility = View.GONE
-        settingsPage.visibility = View.VISIBLE
-        awakeModeGroup.doOnPreDraw {
-            moveAwakeGlassIndicator(awakeModeGroup.checkedRadioButtonId, animate = false)
+        pageAnimationGeneration++
+        val generation = pageAnimationGeneration
+        pages.forEach { page ->
+            page.animate().cancel()
+            page.alpha = 1f
+            page.translationX = 0f
+            page.visibility = if (page === previousPage) View.VISIBLE else View.GONE
         }
-        updateKeepScreenAwake()
+
+        if (!animate || previousPage === targetPage) {
+            previousPage.visibility = View.GONE
+            targetPage.visibility = View.VISIBLE
+        } else {
+            targetPage.alpha = 0f
+            targetPage.translationX = direction * offset
+            targetPage.visibility = View.VISIBLE
+            previousPage.animate()
+                .alpha(0f)
+                .translationX(-direction * offset)
+                .setDuration(PAGE_TRANSITION_DURATION_MS)
+                .setInterpolator(interpolator)
+                .withEndAction {
+                    if (pageAnimationGeneration == generation) {
+                        previousPage.visibility = View.GONE
+                        previousPage.alpha = 1f
+                        previousPage.translationX = 0f
+                    }
+                }
+                .start()
+            targetPage.animate()
+                .alpha(1f)
+                .translationX(0f)
+                .setDuration(PAGE_TRANSITION_DURATION_MS)
+                .setInterpolator(interpolator)
+                .start()
+        }
+
+        currentPageIndex = targetIndex
+        toolbarContextView.visibility = if (targetPage === touchpadPage) View.VISIBLE else View.GONE
+        if (targetPage === settingsPage) {
+            awakeModeGroup.doOnPreDraw {
+                moveAwakeGlassIndicator(awakeModeGroup.checkedRadioButtonId, animate = false)
+            }
+            updateKeepScreenAwake()
+        }
     }
 
     private fun refreshExternalDisplay() {
@@ -445,15 +494,17 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         Log.i("VivoDex", "Displays: ${displayManager.displays.joinToString { "${it.displayId}:${it.name}:${it.state}" }}")
 
         if (display == null) {
-            statusView.text = "No external display connected\nConnect USB-C to Monitor or TV"
-            displayIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#71717A"))
+            statusView.text = "No external display"
+            statusDetailView.text = "Connect USB-C to a monitor or TV"
+            displayIcon.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.text_glass_secondary))
             trackpadView.isEnabled = false
-            trackpadStatusView.text = "Display Disconnected"
+            trackpadStatusView.text = "Display disconnected"
         } else {
-            statusView.text = "Connected: ${display.name}\n${display.mode.physicalWidth} x ${display.mode.physicalHeight} @ ${formatRefreshRate(display.refreshRate)} Hz"
-            displayIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#FFFFFF"))
+            statusView.text = display.name
+            statusDetailView.text = "${display.mode.physicalWidth} × ${display.mode.physicalHeight} · ${formatRefreshRate(display.refreshRate)} Hz"
+            displayIcon.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.deck_success))
             trackpadView.isEnabled = true
-            trackpadStatusView.text = "Connected: ${display.name}"
+            trackpadStatusView.text = "Connected to ${display.name}"
         }
 
         if (availableDisplays().none { it.displayId == selectedDisplayId }) {
@@ -466,14 +517,14 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
     private fun updateAccessibilityStatus() {
         val isEnabled = RemoteGestureService.instance != null
         if (isEnabled) {
-            accessibilityStatusView.text = "Accessibility Active (Gestures & Cursor Ready)"
+            accessibilityStatusView.text = "Accessibility is on"
             accessibilityIcon.setImageResource(R.drawable.ic_check_circle)
-            accessibilityIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#FFFFFF"))
+            accessibilityIcon.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.deck_success))
             openAccessibilityButton.visibility = View.GONE
         } else {
-            accessibilityStatusView.text = "Accessibility Disabled (Required for Virtual Mouse)"
+            accessibilityStatusView.text = "Accessibility is off"
             accessibilityIcon.setImageResource(R.drawable.ic_warning)
-            accessibilityIcon.imageTintList = ColorStateList.valueOf(Color.parseColor("#71717A"))
+            accessibilityIcon.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.deck_warning))
             openAccessibilityButton.visibility = View.VISIBLE
         }
     }
@@ -501,14 +552,21 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
     private fun updateSelectedDisplay() {
         val display = availableDisplays().firstOrNull { it.displayId == selectedDisplayId }
         selectedDisplayView.text = if (display == null) {
-            "Target: No target display selected"
+            "No target selected"
         } else {
-            "Target: ${displayLabel(display)}"
+            if (display.displayId == Display.DEFAULT_DISPLAY) "Phone display" else display.name
+        }
+        val cursorAvailable = display != null && display.displayId != Display.DEFAULT_DISPLAY
+        toggleCursorButton.isEnabled = cursorAvailable
+        toggleCursorButton.contentDescription = if (cursorAvailable) {
+            getString(R.string.toggle_cursor)
+        } else {
+            getString(R.string.cursor_hidden_on_phone)
         }
 
         displayDetailsView.text = display?.let {
-            val current = "${it.mode.physicalWidth} x ${it.mode.physicalHeight} @ ${formatRefreshRate(it.refreshRate)} Hz"
-            "Display ID: ${it.displayId} • State: ${if (it.state == Display.STATE_ON) "Active" else "Idle"}\nResolution: $current"
+            val state = if (it.state == Display.STATE_ON) "Active" else "Idle"
+            "${it.mode.physicalWidth} × ${it.mode.physicalHeight}\n${formatRefreshRate(it.refreshRate)} Hz · $state"
         } ?: ""
     }
 
@@ -665,8 +723,8 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         }
         val input = android.widget.EditText(this).apply {
             hint = "Type for the external app"
-            setHintTextColor(Color.parseColor("#71717A"))
-            setTextColor(Color.WHITE)
+            setHintTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_glass_muted))
+            setTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_glass_primary))
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
             minLines = 3
             importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
@@ -796,9 +854,9 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
 
         if (favorites.isEmpty()) {
             val emptyNotice = TextView(this).apply {
-                text = "No favorite apps added yet. Tap 'Add App' below to select shortcuts."
+                text = "No apps yet. Tap Add to create a launch rail."
                 textSize = 13f
-                setTextColor(Color.parseColor("#888888"))
+                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_glass_muted))
                 setPadding((8 * density).toInt(), (14 * density).toInt(), (8 * density).toInt(), (14 * density).toInt())
             }
             favoriteAppsView.addView(emptyNotice)
@@ -809,34 +867,33 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
             return
         }
 
-        val typedValue = android.util.TypedValue()
-        theme.resolveAttribute(com.google.android.material.R.attr.colorPrimary, typedValue, true)
-        val primaryColor = typedValue.data
-
-        theme.resolveAttribute(com.google.android.material.R.attr.colorSurfaceVariant, typedValue, true)
-        val surfaceVariantColor = typedValue.data
+        if (selectedApp?.activityInfo?.packageName !in favoritePackages) selectedApp = null
+        if (selectedApp == null) selectedApp = favorites.firstOrNull()
 
         favorites.forEach { app ->
             val isSelected = (selectedApp?.activityInfo?.packageName == app.activityInfo.packageName)
 
+            val appName = app.loadLabel(packageManager).toString()
             val appContainer = LinearLayout(this).apply {
                 orientation = LinearLayout.VERTICAL
                 gravity = android.view.Gravity.CENTER_HORIZONTAL
                 layoutParams = LinearLayout.LayoutParams(
-                    (74 * density).toInt(),
+                    (68 * density).toInt(),
                     LinearLayout.LayoutParams.WRAP_CONTENT,
-                ).apply { marginEnd = (10 * density).toInt() }
+                ).apply { marginEnd = (8 * density).toInt() }
             }
 
             val card = com.google.android.material.card.MaterialCardView(this).apply {
                 layoutParams = LinearLayout.LayoutParams((60 * density).toInt(), (60 * density).toInt())
-                radius = 18 * density
-                cardElevation = if (isSelected) (4 * density) else 0f
-                strokeWidth = if (isSelected) (2f * density).toInt() else (1 * density).toInt()
-                strokeColor = if (isSelected) Color.parseColor("#FFFFFF") else Color.parseColor("#26FFFFFF")
-                setCardBackgroundColor(if (isSelected) Color.parseColor("#28FFFFFF") else Color.parseColor("#12FFFFFF"))
+                radius = 14 * density
+                cardElevation = 0f
+                strokeWidth = if (isSelected) (2f * density).toInt() else 0
+                strokeColor = ContextCompat.getColor(this@MainActivity, if (isSelected) R.color.glass_stroke_bright else R.color.glass_stroke)
+                setCardBackgroundColor(ContextCompat.getColor(this@MainActivity, if (isSelected) R.color.glass_card_bg_active else R.color.glass_card_bg))
                 isClickable = true
                 isFocusable = true
+                contentDescription = "Select $appName"
+                stateDescription = if (isSelected) "Selected" else "Not selected"
 
                 setOnClickListener {
                     selectFavorite(app)
@@ -846,8 +903,8 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
 
             val iconView = ImageView(this).apply {
                 layoutParams = android.widget.FrameLayout.LayoutParams(
-                    (46 * density).toInt(),
-                    (46 * density).toInt(),
+                    (44 * density).toInt(),
+                    (44 * density).toInt(),
                     android.view.Gravity.CENTER,
                 )
                 setImageDrawable(app.loadIcon(packageManager))
@@ -858,16 +915,16 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
             card.addView(iconView)
 
             val appLabel = TextView(this).apply {
-                text = app.loadLabel(packageManager)
-                textSize = 11.5f
+                text = appName
+                textSize = 12.5f
                 maxLines = 1
                 ellipsize = android.text.TextUtils.TruncateAt.END
                 gravity = android.view.Gravity.CENTER_HORIZONTAL
                 if (isSelected) {
-                    setTextColor(Color.parseColor("#FFFFFF"))
+                    setTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_glass_primary))
                     setTypeface(typeface, android.graphics.Typeface.BOLD)
                 } else {
-                    setTextColor(Color.parseColor("#A1A1AA"))
+                    setTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_glass_secondary))
                 }
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -880,8 +937,6 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
             favoriteAppsView.addView(appContainer)
         }
 
-        if (selectedApp?.activityInfo?.packageName !in favoritePackages) selectedApp = null
-        if (selectedApp == null) selectedApp = favorites.firstOrNull()
         removeFavoriteButton.visibility = if (selectedApp == null) View.GONE else View.VISIBLE
         selectedApp?.let { app ->
             launchAppButton.isEnabled = true
@@ -972,7 +1027,11 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         "${display.name} (${display.mode.physicalWidth} x ${display.mode.physicalHeight})"
     }
 
-    private fun formatRefreshRate(rate: Float): String = String.format(Locale.US, "%.1f", rate)
+    private fun formatRefreshRate(rate: Float): String = if (kotlin.math.abs(rate - kotlin.math.round(rate)) < 0.05f) {
+        String.format(Locale.US, "%.0f", rate)
+    } else {
+        String.format(Locale.US, "%.1f", rate)
+    }
 
     private fun externalDisplay(): Display? = displayManager.displays.firstOrNull {
         it.displayId != Display.DEFAULT_DISPLAY && it.state != Display.STATE_OFF
@@ -987,6 +1046,7 @@ class MainActivity : AppCompatActivity(), TrackpadView.TrackpadListener {
         const val AUTO_DISABLE_DEADLINE = "auto_disable_deadline"
         private const val SETTINGS_FRAGMENT_ARG_KEY = ":settings:fragment_args_key"
         private const val SETTINGS_FRAGMENT_ARGS = ":settings:show_fragment_args"
+        private const val PAGE_TRANSITION_DURATION_MS = 240L
     }
 
     private fun cancelPendingInput() {

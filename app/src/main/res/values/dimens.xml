@@ -1,4 +1,9 @@
 <resources>
     <dimen name="nav_indicator_horizontal_inset">8dp</dimen>
-    <dimen name="nav_indicator_vertical_inset">5dp</dimen>
+    <dimen name="nav_indicator_vertical_inset">10dp</dimen>
+    <dimen name="glass_card_radius">20dp</dimen>
+    <dimen name="glass_control_radius">14dp</dimen>
+    <dimen name="glass_card_elevation">0dp</dimen>
+    <dimen name="glass_surface_elevation">0dp</dimen>
+    <dimen name="page_horizontal_padding">20dp</dimen>
 </resources>
